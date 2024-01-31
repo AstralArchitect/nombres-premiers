@@ -29,20 +29,11 @@ function main() {
         }
         nombre++;
     }
-    console.log("Voici la liste des " + fin + " nombres premiers")
+    console.log("Voici la liste des " + fin + " nombres premiers :")
     for(let i = 0;i < liste.length;i++){
         console.log(liste[i]);
     }
-    
-    a = 1
     rl.close();
     });
 }
-let a = 0
 main();
-while (true){
-    if (a === 1){
-        main();
-        a = 0;
-    }
-}
