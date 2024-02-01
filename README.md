@@ -1,4 +1,4 @@
-##Description##
+# Description #
 Ceci est un programme en JavaScript qui permet de rechercher des nombres premiers.
 
 Pour l'executer sur Windows, double cliquez sur le fichier .exe (une fois que vous l'avez téléchargé).
