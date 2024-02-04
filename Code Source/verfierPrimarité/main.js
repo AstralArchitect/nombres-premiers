@@ -4,6 +4,7 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
+console.log("Bonjour,")
 
 rl.question('quel nombre voulez-vous tester ? ', (reponse) => {
   let nombre = parseInt(reponse);
