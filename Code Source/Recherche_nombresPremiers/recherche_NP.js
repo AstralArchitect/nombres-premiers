@@ -4,6 +4,7 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
+console.log("Bienvenue sur le chercheur de nombres premiers de Astral Architect")
 
 function main() {
     rl.question('Combien de nombres premiers voulez-vous afficher ? ', (reponse) => {
