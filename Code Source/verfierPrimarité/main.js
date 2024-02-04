@@ -21,10 +21,10 @@ rl.question('quel nombre voulez-vous tester ? ', (reponse) => {
     console.log(nombre + " n'est pas un nombre premier.")
   }
   function apres5Secondes() {
-    console.log("fermeture de la fenêtre...");
+    console.log("Au revoir !");
   }
 
-  // Définir le délai en millisecondes (5 secondes équivaut à 5000 millisecondes)
+
   setTimeout(apres5Secondes, 5000);
   rl.close();
 });
