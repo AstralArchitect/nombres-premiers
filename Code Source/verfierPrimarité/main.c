@@ -8,7 +8,7 @@ int main(){
     scanf("%d", &nombreATester);
     int estPremier = 1;
     int why;
-    for (int i = 2; i < sqrt(nombreATester); i++)
+    for (int i = 2; i < nombreATester; i++)
     {
         if (nombreATester % i == 0)
         {
@@ -19,9 +19,9 @@ int main(){
     }
     if (estPremier)
     {
-        printf("%i est un nombre premier.", nombreATester);
+        printf("%i est un nombre premier.\n", nombreATester);
     }else if (estPremier == 0)
     {
-        printf("%i n'est pas un nombre premier, car il est divisible par %d.", nombreATester, why);
+        printf("%i n'est pas un nombre premier, car il est divisible par %d.\n", nombreATester, why);
     }
 }
