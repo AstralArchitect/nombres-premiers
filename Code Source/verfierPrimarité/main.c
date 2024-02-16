@@ -8,7 +8,7 @@ int main(){
     scanf("%d", &nombreATester);
     int estPremier = 1;
     int why;
-    for (int i = 2; i < nombreATester; i++)
+    for (int i = 2; i < sqrt((float)nombreATester); i++)
     {
         if (nombreATester % i == 0)
         {
