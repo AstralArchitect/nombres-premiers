@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 int main() {
     int nombreATester = 3;
@@ -17,12 +18,12 @@ int main() {
 
     while (nombrePremiersTrouves < fin)
     {
-        int estPremier = 1;
+        bool estPremier = true;
         for (int j = 0; j < nombrePremiersTrouves; j++)
         {
             if (nombreATester % liste[j] == 0)
             {
-                estPremier = 0;
+                estPremier = false;
                 break;
             }
         }
