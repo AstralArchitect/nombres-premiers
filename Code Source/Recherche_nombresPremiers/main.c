@@ -3,19 +3,22 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define MAX_SIZE 50000000
+#define MAX_SIZE 90000000
 
 int nombresPremiersTrouves = 1;
 int fin = 1000;
 int liste[MAX_SIZE] = {2};
+int *NombresPremiers = &nombresPremiersTrouves;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 bool estPremier(int n) {
-    if (n <= 1)
-        return false;
     for (int i = 2; i * i <= n; i++) {
-        if (n % i == 0)
+        if (n % i == 0){
             return false;
+        }
+        else if(n % 2 == 0){
+            return false;
+        }
     }
     return true;
 }
@@ -23,11 +26,22 @@ bool estPremier(int n) {
 // Thread function to find prime numbers
 void *TrouverNombresPremiers(void *arg) {
     int start = *((int *)arg);
-    int *NombresPremiers = &nombresPremiersTrouves;
-    for (int num = start; *NombresPremiers < fin; num += 4) {
+    while (true) {
+        pthread_mutex_lock(&mutex);
+        if (*NombresPremiers >= fin - 3) {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+        int num = start;
+        start += 4;
+        pthread_mutex_unlock(&mutex);
+        
         if (estPremier(num)) {
             pthread_mutex_lock(&mutex);
-            liste[(*NombresPremiers)++] = num;
+            if (*NombresPremiers < fin) {
+                liste[*NombresPremiers] = num;
+                (*NombresPremiers)++;
+            }
             pthread_mutex_unlock(&mutex);
         }
     }
@@ -36,12 +50,11 @@ void *TrouverNombresPremiers(void *arg) {
 }
 
 int main() {
-    printf("Combien de nombres premiers voulez-vous chercher ? (max: 499 999 999)");
+    printf("Combien de nombres premiers voulez-vous chercher ? (max: 49 999 999)");
     scanf("%d", &fin);
-    char pass = '0';
-    if(fin < MAX_SIZE){
+    if (fin < MAX_SIZE) {
         pthread_t tid1, tid2, tid3, tid4;
-        int start1 = 3, start2 = 5, start3 = 7, start4 = 11; // Starting points for each thread
+        int start1 = 3, start2 = 7, start3 = 11, start4 = 13; // Starting points for each thread
 
         // Create threads
         pthread_create(&tid1, NULL, TrouverNombresPremiers, &start1);
@@ -56,13 +69,23 @@ int main() {
         pthread_join(tid4, NULL);
 
         // Print prime numbers
-        for(int i = 0; i < fin; i++) {
-        printf("%d\n", liste[i]);
+        int ancien = MAX_SIZE;
+        for (int j = sizeof(liste)/sizeof(int) - 1; j > 0; j--)
+        {
+            if(liste[j] < ancien && liste[j] > 0 && liste[j] != MAX_SIZE){
+                ancien = liste[j];
+                printf("%d\n", liste[j]);
+                liste[j] = MAX_SIZE;
+            }else{
+                ancien = MAX_SIZE;
+                continue;
+            }
         }
-    }else{
+    } else {
         printf("Veuillez entrer un nombre plus petit.");
-        exit( EXIT_SUCCESS );
+        exit(EXIT_FAILURE);
     }
 
     return 0;
 }
+
