@@ -19,6 +19,7 @@ bool estPremier(int n) {
 int main() {
     printf("Combien de nombres premiers voulez-vous chercher ? (max: 49 999 999)");
     scanf("%d", &fin);
+    int *liste = malloc(fin * sizeof(int));
     if (fin < MAX_SIZE) {
 	int num = 3;
         while (nombresPremiers <= fin) {
