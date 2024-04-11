@@ -17,7 +17,7 @@ void sleep_ms(unsigned long milliseconds) {
     nanosleep(&ts, NULL);
 }
 
-void *thread(void *argv){
+void *print_progression(void *argv){
     int *pointeur = argv;
     int fin = *pointeur;
     while (nombresPremiers <= fin)
@@ -45,7 +45,7 @@ int main() {
     scanf("%d", &fin);
     if (fin <= MAX_SIZE) {
         pthread_t t1;
-        pthread_create(&t1, NULL, thread, &fin);
+        pthread_create(&t1, NULL, print_progression, &fin);
         printf("\e[2J");
         int *liste = malloc(fin * sizeof(int));
         if (liste != NULL)
