@@ -4,18 +4,15 @@
 #include <pthread.h>
 
 #define MAX_SIZE 90000000
+#define NB_THREADS 4
 
 int nombresPremiers = 1;
 int fin;
 int *liste;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void sleep_ms(unsigned long milliseconds) {
-    struct timespec ts;
-
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = (milliseconds % 1000) * 1000000;
-
-    nanosleep(&ts, NULL);
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
 }
 
 void *print_progression(void *argv){
@@ -26,20 +23,13 @@ void *print_progression(void *argv){
         printf("\e[1;1H");
         printf("Progression: %.0f%%", ((float)nombresPremiers / fin) * 100);
         fflush(stdout);
-        sleep_ms(500);
+        struct timespec ts;
+        ts.tv_sec = 500 / 1000;
+        ts.tv_nsec = (500 % 1000) * 1000000;
+        nanosleep(&ts, NULL);
     }
     printf("\n");
     return EXIT_SUCCESS;
-}
-
-void *thread(void *argv){
-    while (nombresPremiers <= fin) {
-        if (estPremier(num)) {
-            liste[nombresPremiers] = num;
-            nombresPremiers++;
-        }
-        num++;
-    }
 }
 
 bool estPremier(int n) {
@@ -51,24 +41,43 @@ bool estPremier(int n) {
     return true;
 }
 
+void *thread(void *argv){
+    int *pointeur = argv;
+    int num = *pointeur;
+    while (nombresPremiers <= fin) {
+        pthread_mutex_lock(&mutex);
+        if (estPremier(num)) {
+            liste[nombresPremiers] = num;
+            nombresPremiers++;
+        }
+        num += NB_THREADS;
+        qsort(liste, fin, sizeof(int), cmpfunc);
+        pthread_mutex_unlock(&mutex);
+    }
+}
+
 int main() {
     printf("Combien de nombres premiers voulez-vous chercher ? (max: 90 000 000)");
     scanf("%d", &fin);
     if (fin <= MAX_SIZE) {
-        pthread_t t1;
-
-        pthread_create(&t1, NULL, print_progression, &fin);
+        pthread_t print;
+        pthread_create(&print, NULL, print_progression, &fin);
         printf("\e[2J");
         liste = malloc(fin * sizeof(int));
+        liste[0] = 2;
         if (liste != NULL)
         {
-            int start[2] = {3, 5};
-            for (int i = 0; i < 2; i++)
+            pthread_t t[NB_THREADS];
+            int start[NB_THREADS] = {3, 5, 7, 11};
+            for (int i = 0; i < NB_THREADS; i++)
             {
-                /* code */
+                pthread_create(&t[i], NULL, thread, &start[i]);
             }
-            
-            pthread_join(t1, NULL);
+            for (int i = 0; i < NB_THREADS; i++)
+            {
+                pthread_join(t[i], NULL);
+            }
+            pthread_join(print, NULL);
             printf("\e[2J\e[1;1H");
             printf("La recherche est terminée, voulez-vous l'enregistrer dans Nombres-Premiers.txt. Si le fichier est déja éxistant, les donnés seront écrasés ?([O]ui/[n]on):");
             fgetc(stdin);
