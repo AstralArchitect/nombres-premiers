@@ -68,7 +68,10 @@ int main() {
         if (liste != NULL)
         {
             pthread_t t[NB_THREADS];
-            int start[NB_THREADS] = {3, 5, 7, 11};
+            int start[NB_THREADS];
+            for(int i = 0; i < NB_THREADS; i++){
+                start[i] = i + 3;
+            }
             for (int i = 0; i < NB_THREADS; i++)
             {
                 pthread_create(&t[i], NULL, thread, &start[i]);
