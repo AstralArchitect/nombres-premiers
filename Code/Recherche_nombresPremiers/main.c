@@ -7,6 +7,7 @@
 
 int nombresPremiers = 1;
 int fin;
+int *liste;
 
 void sleep_ms(unsigned long milliseconds) {
     struct timespec ts;
@@ -31,6 +32,16 @@ void *print_progression(void *argv){
     return EXIT_SUCCESS;
 }
 
+void *thread(void *argv){
+    while (nombresPremiers <= fin) {
+        if (estPremier(num)) {
+            liste[nombresPremiers] = num;
+            nombresPremiers++;
+        }
+        num++;
+    }
+}
+
 bool estPremier(int n) {
     for (int i = 2; i * i <= n; i++) {
         if (n % i == 0){
@@ -45,19 +56,18 @@ int main() {
     scanf("%d", &fin);
     if (fin <= MAX_SIZE) {
         pthread_t t1;
+
         pthread_create(&t1, NULL, print_progression, &fin);
         printf("\e[2J");
-        int *liste = malloc(fin * sizeof(int));
+        liste = malloc(fin * sizeof(int));
         if (liste != NULL)
         {
-            int num = 3;
-            while (nombresPremiers <= fin) {
-                if (estPremier(num)) {
-                    liste[nombresPremiers] = num;
-                    nombresPremiers++;
-	            }
-                num++;
-	        }
+            int start[2] = {3, 5};
+            for (int i = 0; i < 2; i++)
+            {
+                /* code */
+            }
+            
             pthread_join(t1, NULL);
             printf("\e[2J\e[1;1H");
             printf("La recherche est terminée, voulez-vous l'enregistrer dans Nombres-Premiers.txt. Si le fichier est déja éxistant, les donnés seront écrasés ?([O]ui/[n]on):");
@@ -80,7 +90,6 @@ int main() {
                 printf("Annulation...\n");
                 exit(EXIT_SUCCESS);
             }
-            
             else
             {
                 printf("Veuillez entrer une réponse correct(O/n).");
@@ -89,9 +98,9 @@ int main() {
         }
         
     } else {
-	printf("\e[0;31m");
+	    printf("\e[0;31m");
         printf("Erreur! Veuillez entrer un nombre plus petit.\n");
-	printf("\e[0;37m");
+	    printf("\e[0;37m");
         exit(EXIT_FAILURE);
     }
 
