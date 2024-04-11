@@ -77,7 +77,7 @@ int main() {
             }
             else if (rep == 'n' || rep == 'N')
             {
-                printf("Annumation...\n");
+                printf("Annulation...\n");
                 exit(EXIT_SUCCESS);
             }
             
