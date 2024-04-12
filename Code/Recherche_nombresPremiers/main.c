@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 #define MAX_SIZE 90000000
-#define NB_THREADS 4
+#define NB_THREADS 2
 
 int nombresPremiers = 1;
 int fin;
