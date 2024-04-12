@@ -45,13 +45,13 @@ void *thread(void *argv){
     unsigned long *pointeur = argv;
     unsigned long num = *pointeur;
     while (nombresPremiers <= fin) {
-        pthread_mutex_lock(&mutex);
+        //pthread_mutex_lock(&mutex);
         if (estPremier(num)) {
             liste[nombresPremiers] = num;
             nombresPremiers++;
         }
         num += NB_THREADS;
-        pthread_mutex_unlock(&mutex);
+        //pthread_mutex_unlock(&mutex);
     }
     return EXIT_SUCCESS;
 }
@@ -97,7 +97,7 @@ int main() {
                 {
                     for (int i = 0; i < fin; i++)
                     {
-                        fprintf(fichier, "%d, ", liste[i]);
+                        fprintf(fichier, "%ld, ", liste[i]);
                     }
                 }
             }
@@ -106,7 +106,7 @@ int main() {
                 qsort(liste, fin, sizeof(int), cmpfunc);
                 for (int i = 0; i < fin; i++)
                 {
-                    printf("%d\n", liste[i]);
+                    printf("%ld\n", liste[i]);
                 }
             }
             else if (rep == 3)
@@ -117,12 +117,12 @@ int main() {
                 {
                     for (int i = 0; i < fin; i++)
                     {
-                        fprintf(fichier, "%d, ", liste[i]);
+                        fprintf(fichier, "%ld, ", liste[i]);
                     }
                 }
                 for (int i = 0; i < fin; i++)
                 {
-                    printf("%d\n", liste[i]);
+                    printf("%ld\n", liste[i]);
                 }
             }
             else
