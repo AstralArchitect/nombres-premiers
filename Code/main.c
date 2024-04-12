@@ -45,14 +45,15 @@ void *thread(void *argv){
     int *pointeur = argv;
     int num = *pointeur;
     while (nombresPremiers <= fin) {
-        pthread_mutex_lock(&mutex);
+        //pthread_mutex_lock(&mutex);
         if (estPremier(num)) {
             liste[nombresPremiers] = num;
             nombresPremiers++;
         }
         num += NB_THREADS;
-        pthread_mutex_unlock(&mutex);
+        //pthread_mutex_unlock(&mutex);
     }
+    return EXIT_SUCCESS;
 }
 
 int main() {
@@ -85,10 +86,10 @@ int main() {
             }
             pthread_join(print, NULL);
             printf("\e[2J\e[1;1H");
-            printf("La recherche est terminée, voulez-vous l'enregistrer dans Nombres-Premiers.txt. Si le fichier est déja éxistant, les donnés seront écrasés ?([O]ui/[n]on):");
-            fgetc(stdin);
-            char rep = fgetc(stdin);
-            if (rep == 'O' || rep == 'o')
+            printf("La recherche est terminée.\n\t1. Enregistrer dans Nombres-Premiers.txt.\n\t2. Tout afficher\n\t3. Afficher et Enregistrer\n:");
+            int rep;
+            scanf("%d", &rep);
+            if (rep == 1)
             {
                 qsort(liste, fin, sizeof(int), cmpfunc);
                 FILE *fichier = fopen("Nombres-Premiers.txt", "w+");
@@ -99,16 +100,34 @@ int main() {
                         fprintf(fichier, "%d, ", liste[i]);
                     }
                 }
-            
             }
-            else if (rep == 'n' || rep == 'N')
+            else if (rep == 2)
             {
-                printf("Annulation...\n");
-                exit(EXIT_SUCCESS);
+                qsort(liste, fin, sizeof(int), cmpfunc);
+                for (int i = 0; i < fin; i++)
+                {
+                    printf("%d\n", liste[i]);
+                }
+            }
+            else if (rep == 3)
+            {
+                qsort(liste, fin, sizeof(int), cmpfunc);
+                FILE *fichier = fopen("Nombres-Premiers.txt", "w+");
+                if (fichier != NULL)
+                {
+                    for (int i = 0; i < fin; i++)
+                    {
+                        fprintf(fichier, "%d, ", liste[i]);
+                    }
+                }
+                for (int i = 0; i < fin; i++)
+                {
+                    printf("%d\n", liste[i]);
+                }
             }
             else
             {
-                printf("Veuillez entrer une réponse correct(O/n).");
+                printf("Veuillez entrer une réponse correct(1/2).");
                 exit(EXIT_FAILURE);
             }
         }
