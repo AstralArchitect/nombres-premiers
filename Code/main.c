@@ -8,7 +8,7 @@
 
 int nombresPremiers = 1;
 int fin;
-int *liste;
+unsigned long *liste;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int cmpfunc (const void * a, const void * b) {
@@ -42,16 +42,16 @@ bool estPremier(int n) {
 }
 
 void *thread(void *argv){
-    int *pointeur = argv;
-    int num = *pointeur;
+    unsigned long *pointeur = argv;
+    unsigned long num = *pointeur;
     while (nombresPremiers <= fin) {
-        //pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&mutex);
         if (estPremier(num)) {
             liste[nombresPremiers] = num;
             nombresPremiers++;
         }
         num += NB_THREADS;
-        //pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock(&mutex);
     }
     return EXIT_SUCCESS;
 }
@@ -63,7 +63,7 @@ int main() {
         pthread_t print;
         pthread_create(&print, NULL, print_progression, &fin);
         printf("\e[2J");
-        liste = malloc(fin * sizeof(int));
+        liste = malloc(fin * sizeof(unsigned long));
         liste[0] = 2;
         if (liste != NULL)
         {
