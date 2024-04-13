@@ -44,6 +44,7 @@ void *print_progression(void *argv){
 }
 //fonction pour determiner si un nombre est premier
 bool estPremier(long n) {
+    //répéter tant que i est en dessous de la racine du nombre (i x i est plus petit ou égal au nombre)
     for (long i = 2; i * i <= n; i++) {
         if (n % i == 0){
             return false;
@@ -60,11 +61,13 @@ void *thread(void *argv){
     while (nombresPremiers <= fin) {
 	//si le nombre est premier alors...
         if (estPremier(num)) {
-	    //l'a
+	        //l'ajouter à la liste des nombres premiers
             liste[nombresPremiers] = num;
+            //puis incrémenter de 1 le nombre de nombres premiers trouvés
             nombresPremiers++;
         }
-	num += NB_THREADS;
+        //
+	    num += NB_THREADS;
     }
     return EXIT_SUCCESS;
 }
