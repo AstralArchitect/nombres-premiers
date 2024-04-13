@@ -3,36 +3,46 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
-
+//ce nombre correspond au nombres max de nombres premiers. Vous pouvez le changer a votre guise
 #define MAX_SIZE 90000000
-#define NB_THREADS 4
-
+//Attention, ne pas changer le nombre de threads au dela de 2 car cela entrenera un comportement imprevu du programme
+#define NB_THREADS 2
+//nombre de nombres premiers trouves
 long nombresPremiers = 1;
+//valeur d'arret de la recherche
 long fin;
+//liste de nombres premiers
 long *liste;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+//fonction pour comparer 2 nombres. Elle sera utilisee pour trier la liste
 int cmpfunc (const void * a, const void * b) {
    return ( *(int*)a - *(int*)b );
 }
-
+//fonction du thread qui affichera la progression (en %)
 void *print_progression(void *argv){
+    //recuperation de la valeur de fin
     long *pointeur = argv;
     long fin = *pointeur;
+    //boucle qui s'arrete lorsque la recherche est terminee
     while (nombresPremiers <= fin)
     {
+	//effacer le terminal et positionner le pointeur au debu
         printf("\e[1;1H\e[2J");
+	//afficher la progression
         printf("Progression: %.0f%%", ((float)nombresPremiers / fin) * 100);
-        fflush(stdout);
+	//nessessaire pour que l'on voit le texte qui s'affiche
+	fflush(stdout);
+	//attendre une demi-seconde
         struct timespec ts;
         ts.tv_sec = 500 / 1000;
         ts.tv_nsec = (500 % 1000) * 1000000;
         nanosleep(&ts, NULL);
     }
+    //afficher un retour a la ligne
     printf("\n");
     return EXIT_SUCCESS;
 }
-
+//fonction pour determiner si un nombre est premier
 bool estPremier(long n) {
     for (long i = 2; i * i <= n; i++) {
         if (n % i == 0){
@@ -41,23 +51,20 @@ bool estPremier(long n) {
     }
     return true;
 }
-
+//threads de calcul
 void *thread(void *argv){
+    //recuperer la valeur de depart
     long *pointeur = argv;
     long num = *pointeur;
+    //boucle
     while (nombresPremiers <= fin) {
-        //pthread_mutex_lock(&mutex);
+	//si le nombre est premier alors...
         if (estPremier(num)) {
+	    //l'a
             liste[nombresPremiers] = num;
             nombresPremiers++;
         }
-	if(NB_THREADS > 1){
-		num += (NB_THREADS - 2);
-	}
-	else if(NB_THREADS == 1){
-		num++;
-	}
-        //pthread_mutex_unlock(&mutex);
+	num += NB_THREADS;
     }
     return EXIT_SUCCESS;
 }
