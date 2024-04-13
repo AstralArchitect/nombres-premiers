@@ -52,7 +52,7 @@ void *thread(void *argv){
             nombresPremiers++;
         }
 	if(NB_THREADS > 1){
-		num += 2;
+		num += (NB_THREADS - 2);
 	}
 	else if(NB_THREADS == 1){
 		num++;
