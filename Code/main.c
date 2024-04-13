@@ -66,13 +66,13 @@ void *thread(void *argv){
             //puis incrémenter de 1 le nombre de nombres premiers trouvés
             nombresPremiers++;
         }
-        //
 	    num += NB_THREADS;
     }
     return EXIT_SUCCESS;
 }
 
 int main() {
+    //demander à l'utilisateur combien de nombres
     printf("Combien de nombres premiers voulez-vous chercher ? (max: 90 000 000)");
     scanf("%d", &fin);
     if (fin <= MAX_SIZE) {
