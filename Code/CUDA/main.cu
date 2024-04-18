@@ -12,16 +12,31 @@
 
 #define MAX_SIZE 2000000000
 
-long *liste, *liste_d;
+unsigned long long *liste, *liste_d;
 int nombresPremiers, *nombresPremiers_d;
 
-__global__ void thread(long fin, int *nombresPremiersTrouves, long *liste){
+#ifdef _WIN32
+void sleep_ms(DWORD milliseconds) {
+    Sleep(milliseconds);
+}
+#else
+void sleep_ms(unsigned long long milliseconds) {
+    struct timespec ts;
+
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+
+    nanosleep(&ts, NULL);
+}
+#endif
+
+__global__ void thread(unsigned long long fin, int *nombresPremiersTrouves, unsigned long long *liste){
     int tid = blockIdx.x * blockDim.x + threadIdx.x + 2;
     int estPremier;
 
     while (true) {
         estPremier = 1;
-        for (long j = 2; j * j <= tid; j++) {
+        for (unsigned long long j = 2; j * j <= tid; j++) {
             if (tid % j == 0){
                 estPremier = 0;
                 break;
@@ -51,16 +66,24 @@ int main() {
     #endif
     //demander à l'utilisateur combien de nombres veut-il chercher et enregistrer la réponse dans fin
     printf("Combien de nombres premiers voulez-vous chercher ? (max: 2 000 000 000)");
-    long fin, *fin_d;
+    unsigned long long fin, *fin_d;
     scanf("%ld", &fin);
     if (fin <= MAX_SIZE) {
         printf("\033[2J\033[H");
-        cudaMalloc(&liste_d, fin * sizeof(long));
-        cudaMalloc(&fin_d, sizeof(long));
-        cudaMalloc(&nombresPremiers_d, sizeof(long));
+        if (fin > 500000000000)
+        {
+            printf("Attention, la recherche risque de durer un certain temps\n");
+            sleep_ms(2000);
+        }
+
+        printf("Recherche...\n");
+        
+        cudaMalloc(&liste_d, fin * sizeof(unsigned long long));
+        cudaMalloc(&fin_d, sizeof(unsigned long long));
+        cudaMalloc(&nombresPremiers_d, sizeof(unsigned long long));
         if (liste_d != NULL)
         {
-            time_t startTime, stop;
+            time_t startTime, stop, searchStop;
 	        startTime = time(NULL);
 
             int *nombresPremiers_d;
@@ -73,7 +96,7 @@ int main() {
             int grid_size = ((fin + block_size) / block_size);
             thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
 
-            liste = (long*)malloc(fin * sizeof(long));
+            liste = (unsigned long long*)malloc(fin * sizeof(unsigned long long));
 
             if (liste == NULL)
             {
@@ -83,48 +106,35 @@ int main() {
                 exit(EXIT_FAILURE);
             }
 
-	        cudaMemcpy(liste, liste_d, fin * sizeof(long), cudaMemcpyDeviceToHost);
+	        cudaMemcpy(liste, liste_d, fin * sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+
+            searchStop = time(NULL);
 
             cudaFree(nombresPremiers_d);
             cudaFree(liste_d);
 
+            printf("\033[2J\033[1;1H");
+            printf("Triage de la liste...\n");
+            qsort(liste, fin, sizeof(int), cmpfunc);
             stop = time(NULL);
             printf("\033[2J\033[1;1H");
-            printf("La recherche est terminée. En %lld secondes.\n\t1. Enregistrer dans Nombres-Premiers.txt.\n\t2. Tout afficher\n\t3. Afficher et Enregistrer\n:", stop - startTime);
+            printf("La recherche est terminée en %lld secondes. Le triage en %lld seconde. Total : %lld secondes\n\t1. Enregistrer dans Nombres-Premiers.txt.\n\t2. Tout afficher\n\t3. Afficher et Enregistrer\n:", searchStop - startTime, (stop - startTime) - (searchStop - startTime), stop - startTime);
             int rep;
             scanf("%d", &rep);
-            if (rep == 1)
+            if (rep == 1 || rep == 3)
             {
-                qsort(liste, fin, sizeof(long), cmpfunc);
                 FILE *fichier = fopen("Nombres-Premiers.txt", "w+");
                 if (fichier != NULL)
                 {
-                    for (long i = 0; i < fin; i++)
+                    for (int i = 0; i < fin; i++)
                     {
-                        fprintf(fichier, "%ld\n", liste[i]);
+                        fprintf(fichier, "%ld, ", liste[i]);
                     }
                 }
             }
-            else if (rep == 2)
+            else if (rep == 2 || rep == 3)
             {
-                qsort(liste, fin, sizeof(long), cmpfunc);
-                for (long i = 0; i < fin; i++)
-                {
-                    printf("%ld\n", liste[i]);
-                }
-            }
-            else if (rep == 3)
-            {
-                qsort(liste, fin, sizeof(long), cmpfunc);
-                FILE *fichier = fopen("Nombres-Premiers.txt", "w+");
-                if (fichier != NULL)
-                {
-                    for (long i = 0; i < fin; i++)
-                    {
-                        fprintf(fichier, "%ld\n", liste[i]);
-                    }
-                }
-                for (long i = 0; i < fin; i++)
+                for (int i = 0; i < fin; i++)
                 {
                     printf("%ld\n", liste[i]);
                 }
