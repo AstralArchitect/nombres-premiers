@@ -42,16 +42,17 @@ bool estPremier(int n) {
 }
 
 void *thread(void *argv){
-    unsigned long *pointeur = argv;
-    unsigned long num = *pointeur;
+    int *pointeur = argv;
+    int num = *pointeur;
+
     while (nombresPremiers <= fin) {
-        //pthread_mutex_lock(&mutex);
         if (estPremier(num)) {
             liste[nombresPremiers] = num;
+            pthread_mutex_lock(&mutex);
             nombresPremiers++;
+            pthread_mutex_unlock(&mutex);
         }
         num += NB_THREADS;
-        //pthread_mutex_unlock(&mutex);
     }
     return EXIT_SUCCESS;
 }
@@ -67,6 +68,8 @@ int main() {
         liste[0] = 2;
         if (liste != NULL)
         {
+            time_t startTime, stop, searchStop;
+
             pthread_t t[NB_THREADS];
             int start[NB_THREADS];
             int startPoint = 3;
@@ -76,6 +79,7 @@ int main() {
                 startPoint++;
             }
             
+            startTime = time(NULL);
             for (int i = 0; i < NB_THREADS; i++)
             {
                 pthread_create(&t[i], NULL, thread, &start[i]);
@@ -84,14 +88,20 @@ int main() {
             {
                 pthread_join(t[i], NULL);
             }
+
+            searchStop = time(NULL);
+            
             pthread_join(print, NULL);
+            printf("\e[2J\e[1;1H");
+            printf("Triage de la liste...\n");
+            qsort(liste, fin, sizeof(int), cmpfunc);
+            stop = time(NULL);
             printf("\e[2J\e[1;1H");
             printf("La recherche est terminée.\n\t1. Enregistrer dans Nombres-Premiers.txt.\n\t2. Tout afficher\n\t3. Afficher et Enregistrer\n:");
             int rep;
             scanf("%d", &rep);
-            if (rep == 1)
+            if (rep == 1 || rep == 3)
             {
-                qsort(liste, fin, sizeof(int), cmpfunc);
                 FILE *fichier = fopen("Nombres-Premiers.txt", "w+");
                 if (fichier != NULL)
                 {
@@ -101,25 +111,8 @@ int main() {
                     }
                 }
             }
-            else if (rep == 2)
+            else if (rep == 2 || rep == 3)
             {
-                qsort(liste, fin, sizeof(int), cmpfunc);
-                for (int i = 0; i < fin; i++)
-                {
-                    printf("%ld\n", liste[i]);
-                }
-            }
-            else if (rep == 3)
-            {
-                qsort(liste, fin, sizeof(int), cmpfunc);
-                FILE *fichier = fopen("Nombres-Premiers.txt", "w+");
-                if (fichier != NULL)
-                {
-                    for (int i = 0; i < fin; i++)
-                    {
-                        fprintf(fichier, "%ld, ", liste[i]);
-                    }
-                }
                 for (int i = 0; i < fin; i++)
                 {
                     printf("%ld\n", liste[i]);
