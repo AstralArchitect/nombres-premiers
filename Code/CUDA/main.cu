@@ -77,24 +77,23 @@ int main() {
         }
 
         printf("Recherche...\n");
-        
+        // allocation dynamique de mémoire sur le device pour liste_d et nombresPremiers_d
         cudaMalloc(&liste_d, fin * sizeof(unsigned long long));
-        cudaMalloc(&fin_d, sizeof(unsigned long long));
         cudaMalloc(&nombresPremiers_d, sizeof(unsigned long long));
         if (liste_d != NULL)
         {
             time_t startTime, stop, searchStop;
 	        startTime = time(NULL);
 
-            int *nombresPremiers_d;
-            cudaMalloc(&nombresPremiers_d, sizeof(int));
-
             int init = 0;
-            cudaMemcpy(nombresPremiers_d, &init, sizeof(int), cudaMemcpyHostToDevice);
+           // copie de init (0) vers la 
+valeur de nombresPremiers_d
+ cudaMemcpy(nombresPremiers_d, &init, sizeof(int), cudaMemcpyHostToDevice);
 
             int block_size = 256;
             int grid_size = ((fin + block_size) / block_size);
-            thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
+//créer le thread de recherche de nombres premiers qui s'exécutera sur le GPU
+ thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
 
             liste = (unsigned long long*)malloc(fin * sizeof(unsigned long long));
 
@@ -105,11 +104,11 @@ int main() {
                 printf("\033[0;37m");
                 exit(EXIT_FAILURE);
             }
-
+         // copier la liste device dans la liste host
 	        cudaMemcpy(liste, liste_d, fin * sizeof(unsigned long long), cudaMemcpyDeviceToHost);
 
             searchStop = time(NULL);
-
+            //libérer les adresses de nombresPremiers_d et liste_d du GPU
             cudaFree(nombresPremiers_d);
             cudaFree(liste_d);
 
