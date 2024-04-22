@@ -12,7 +12,7 @@
 
 #define MAX_SIZE 2000000000
 
-unsigned long long *liste, *liste_d;
+unsigned long *liste, *liste_d;
 int nombresPremiers, *nombresPremiers_d;
 
 #ifdef _WIN32
@@ -20,7 +20,7 @@ void sleep_ms(DWORD milliseconds) {
     Sleep(milliseconds);
 }
 #else
-void sleep_ms(unsigned long long milliseconds) {
+void sleep_ms(unsigned long milliseconds) {
     struct timespec ts;
 
     ts.tv_sec = milliseconds / 1000;
@@ -30,13 +30,13 @@ void sleep_ms(unsigned long long milliseconds) {
 }
 #endif
 
-__global__ void thread(unsigned long long fin, int *nombresPremiersTrouves, unsigned long long *liste){
+__global__ void thread(unsigned long fin, int *nombresPremiersTrouves, unsigned long *liste){
     int tid = blockIdx.x * blockDim.x + threadIdx.x + 2;
     int estPremier;
 
     while (true) {
         estPremier = 1;
-        for (unsigned long long j = 2; j * j <= tid; j++) {
+        for (unsigned long j = 2; j * j <= tid; j++) {
             if (tid % j == 0){
                 estPremier = 0;
                 break;
@@ -66,7 +66,7 @@ int main() {
     #endif
     //demander à l'utilisateur combien de nombres veut-il chercher et enregistrer la réponse dans fin
     printf("Combien de nombres premiers voulez-vous chercher ? (max: 2 000 000 000)");
-    unsigned long long fin, *fin_d;
+    unsigned long fin, *fin_d;
     scanf("%ld", &fin);
     if (fin <= MAX_SIZE) {
         printf("\033[2J\033[H");
@@ -78,9 +78,9 @@ int main() {
 
         printf("Recherche...\n");
         
-        cudaMalloc(&liste_d, fin * sizeof(unsigned long long));
-        cudaMalloc(&fin_d, sizeof(unsigned long long));
-        cudaMalloc(&nombresPremiers_d, sizeof(unsigned long long));
+        cudaMalloc(&liste_d, fin * sizeof(unsigned long));
+        cudaMalloc(&fin_d, sizeof(unsigned long));
+        cudaMalloc(&nombresPremiers_d, sizeof(unsigned long));
         if (liste_d != NULL)
         {
             time_t startTime, stop, searchStop;
@@ -96,7 +96,7 @@ int main() {
             int grid_size = ((fin + block_size) / block_size);
             thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
 
-            liste = (unsigned long long*)malloc(fin * sizeof(unsigned long long));
+            liste = (unsigned long*)malloc(fin * sizeof(unsigned long));
 
             if (liste == NULL)
             {
@@ -106,7 +106,7 @@ int main() {
                 exit(EXIT_FAILURE);
             }
 
-	        cudaMemcpy(liste, liste_d, fin * sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+	        cudaMemcpy(liste, liste_d, fin * sizeof(unsigned long), cudaMemcpyDeviceToHost);
 
             searchStop = time(NULL);
 
@@ -115,7 +115,7 @@ int main() {
 
             printf("\033[2J\033[1;1H");
             printf("Triage de la liste...\n");
-            qsort(liste, fin, sizeof(int), cmpfunc);
+            qsort(liste, fin, sizeof(unsigned long), cmpfunc);
             stop = time(NULL);
             printf("\033[2J\033[1;1H");
             printf("La recherche est terminée en %lld secondes. Le triage en %lld seconde. Total : %lld secondes\n\t1. Enregistrer dans Nombres-Premiers.txt.\n\t2. Tout afficher\n\t3. Afficher et Enregistrer\n:", searchStop - startTime, (stop - startTime) - (searchStop - startTime), stop - startTime);
@@ -128,11 +128,11 @@ int main() {
                 {
                     for (int i = 0; i < fin; i++)
                     {
-                        fprintf(fichier, "%ld, ", liste[i]);
+                        fprintf(fichier, "%ld\n", liste[i]);
                     }
                 }
             }
-            else if (rep == 2 || rep == 3)
+            if (rep == 2 || rep == 3)
             {
                 for (int i = 0; i < fin; i++)
                 {

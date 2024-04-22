@@ -4,4 +4,4 @@ run:
 	meson compile -C bin/
 	bin/main
 configure:
-	meson setup bin/ --reconfigure
+	meson setup bin/

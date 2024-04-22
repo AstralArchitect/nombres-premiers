@@ -1,3 +1,3 @@
 project('nombres-premiers', 'c', version : '1.0.0')
-# thread = dependency('treads')
-executable('premiers', 'Code/CPU/main.c', install : true)
+pthread = dependency('threads')
+executable('premiers', 'Code/CPU/main.c', install : true, link_with: pthread)

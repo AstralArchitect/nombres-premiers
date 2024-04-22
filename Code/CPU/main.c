@@ -107,7 +107,7 @@ int main() {
                 {
                     for (int i = 0; i < fin; i++)
                     {
-                        fprintf(fichier, "%ld, ", liste[i]);
+                        fprintf(fichier, "%ld\n", liste[i]);
                     }
                 }
             }
