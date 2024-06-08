@@ -26,10 +26,23 @@ int main() {
     printf("Combien de nombres premiers voulez-vous chercher ?: ");
     scanf("%ld", &fin);
 
+    printf("Quel mode voulez-vous utiliser (1. CPU, 2. CUDA) ?: ");
+    char mode;
+    scanf("%d", (int*)&mode);
+
     clearScreen();
     printf("recherche...");
-    unsigned long nombresPremiers = 0;
-    unsigned long *liste = find(fin, &nombresPremiers);
+    
+    unsigned long *liste = NULL;
+    if (mode == 1)
+    {
+        liste = find_cpu(fin);
+    }
+    else if (mode == 2)
+    {
+        liste = find(fin);
+    }
+    
 
     if (liste == NULL)
     {

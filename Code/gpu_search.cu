@@ -42,9 +42,9 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
     }
 }
 
-unsigned long *find(unsigned long fin, unsigned long *nombresPremiers) {
+unsigned long *find(unsigned long fin) {
     // host variables
-    unsigned long *liste;
+    unsigned long *liste, nombresPremiers = 0;
 
     // allocation dynamique de mémoire sur le GPU
     cudaMalloc(&liste_d, fin * sizeof(unsigned long));
@@ -55,7 +55,7 @@ unsigned long *find(unsigned long fin, unsigned long *nombresPremiers) {
     }
 
     //copie de mémoire sur le GPU
-    cudaMemcpy(nombresPremiers_d, nombresPremiers, sizeof(unsigned long), cudaMemcpyHostToDevice);
+    cudaMemcpy(nombresPremiers_d, &nombresPremiers, sizeof(unsigned long), cudaMemcpyHostToDevice);
 
     //apele des threads GPU
     int block_size = 1024;
