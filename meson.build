@@ -1,3 +1,5 @@
-project('nombres-premiers', 'c', version : '1.0.0')
-# thread = dependency('treads')
-executable('premiers', 'Code/CPU/main.c', install : true)
+project('nombres-premiers', 'cuda', 'cpp', version : '1.0.0')
+
+thread = dependency('threads')
+
+executable('main', 'Code/main.cu', 'Code/lib.cu')
