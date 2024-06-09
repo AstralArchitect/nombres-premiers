@@ -71,5 +71,5 @@ int main() {
         printf("%ld\n", liste[i]);
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

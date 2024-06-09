@@ -13,7 +13,7 @@
 //device variables
 unsigned long *liste_d, *nombresPremiers_d;
 
-__device__ bool estPremier(unsigned long n)
+__device__ bool cuda_estPremier(unsigned long n)
 {
     for (unsigned long j = 2; j * j <= n; j++) {
         if (n % j == 0){
@@ -28,7 +28,7 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
     int tid = blockIdx.x * blockDim.x + threadIdx.x + 2;
 
     while (true) {
-        if (estPremier(tid)) {
+        if (cuda_estPremier(tid)) {
             int idx = atomicAdd((int*)nombresPremiersTrouves, 1);
             if (idx < fin) {
                 liste[idx] = tid;

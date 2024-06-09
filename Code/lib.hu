@@ -1,5 +1,5 @@
 extern unsigned long *find(unsigned long fin);
-extern unsigned long *find_cpu(unsigned long fin);
+extern "C" unsigned long *find_cpu(unsigned long fin);
 #ifdef _WIN32
 void sleep_ms(unsigned long milliseconds) {
     Sleep(milliseconds);
