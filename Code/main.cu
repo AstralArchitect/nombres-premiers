@@ -6,8 +6,6 @@
     #include <unistd.h>
 #endif
 
-#include "lib.hu"
-
 unsigned long fin;
 
 int cmpfunc(const void *a, const void *b) {
@@ -26,22 +24,11 @@ int main() {
     printf("Combien de nombres premiers voulez-vous chercher ?: ");
     scanf("%ld", &fin);
 
-    printf("Quel mode voulez-vous utiliser (1. CPU, 2. CUDA) ?: ");
-    char mode;
-    scanf("%d", (int*)&mode);
-
     clearScreen();
     printf("recherche...");
     
     unsigned long *liste = NULL;
-    if (mode == 1)
-    {
-        liste = find_cpu(fin);
-    }
-    else if (mode == 2)
-    {
-        liste = find(fin);
-    }
+    liste = find(fin);
     
 
     if (liste == NULL)
