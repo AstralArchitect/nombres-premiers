@@ -10,10 +10,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-//device variables
-unsigned long *liste_d, *nombresPremiers_d;
-
-__device__ bool cuda_estPremier(unsigned long n)
+__device__ bool estPremier(unsigned long n)
 {
     for (unsigned long j = 2; j * j <= n; j++) {
         if (n % j == 0){
@@ -28,7 +25,7 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
     int tid = blockIdx.x * blockDim.x + threadIdx.x + 2;
 
     while (true) {
-        if (cuda_estPremier(tid)) {
+        if (estPremier(tid)) {
             int idx = atomicAdd((int*)nombresPremiersTrouves, 1);
             if (idx < fin) {
                 liste[idx] = tid;
@@ -45,12 +42,19 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
 unsigned long *find(unsigned long fin) {
     // host variables
     unsigned long *liste, nombresPremiers = 0;
+    //device variables
+    unsigned long *liste_d, *nombresPremiers_d;
 
     // allocation dynamique de mémoire sur le GPU
     cudaMalloc(&liste_d, fin * sizeof(unsigned long));
-    cudaMalloc(&nombresPremiers_d, sizeof(unsigned long));
-    if (liste_d == NULL || nombresPremiers_d == NULL)
+    if (liste_d == NULL)
     {
+        return NULL;
+    }
+    cudaMalloc(&nombresPremiers_d, sizeof(unsigned long));
+    if (nombresPremiers_d == NULL)
+    {
+        cudaFree(liste_d);
         return NULL;
     }
 
@@ -58,7 +62,7 @@ unsigned long *find(unsigned long fin) {
     cudaMemcpy(nombresPremiers_d, &nombresPremiers, sizeof(unsigned long), cudaMemcpyHostToDevice);
 
     //apele des threads GPU
-    int block_size = 1024;
+    int block_size = 512;
     int grid_size = ((fin + block_size) / block_size);
     thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
 
@@ -67,6 +71,8 @@ unsigned long *find(unsigned long fin) {
 
     if (liste == NULL)
     {
+        cudaFree(nombresPremiers_d);
+        cudaFree(liste_d);
         return NULL;
     }
 

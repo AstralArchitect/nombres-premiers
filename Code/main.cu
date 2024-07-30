@@ -6,8 +6,6 @@
     #include <unistd.h>
 #endif
 
-unsigned long fin;
-
 int cmpfunc(const void *a, const void *b) {
     return (*(unsigned long*)a - *(unsigned long*)b);
 }
@@ -21,6 +19,7 @@ int main() {
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
+    unsigned long fin;
     printf("Combien de nombres premiers voulez-vous chercher ?: ");
     scanf("%ld", &fin);
 
@@ -53,7 +52,7 @@ int main() {
     printf("\033[37m");
     clearScreen();
 
-    for (int i = 0; i < fin; i++)
+    for (unsigned long i = 0; i < fin; i++)
     {
         printf("%ld\n", liste[i]);
     }
