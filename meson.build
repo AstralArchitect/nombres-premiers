@@ -1,9 +1,9 @@
-project('nombres-premiers', 'cuda', version : '1.0.0')
+project('nombres-premiers', 'c', version : '1.0.0')
 
-thread = dependency('threads')
+#thread = dependency('threads')
 
 # Define sources
-sources = ['Code/main.cu', 'Code/gpu_search.cu']
+sources = ['src/main.c', 'src/search.c']
 
 # Define the executable
 executable('main', sources)

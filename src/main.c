@@ -5,6 +5,7 @@
 #else
     #include <unistd.h>
 #endif
+#include <string.h>
 
 int cmpfunc(const void *a, const void *b) {
     return (*(unsigned long*)a - *(unsigned long*)b);
@@ -15,20 +16,28 @@ void clearScreen()
     printf("\033[H\033[2J");
 }
 
-int main() {
+unsigned long *find(unsigned long fin);
+
+int main(int argc, char *argv[]) {
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
     unsigned long fin;
-    printf("Combien de nombres premiers voulez-vous chercher ?: ");
-    scanf("%ld", &fin);
+    if ((argc == 2 || argc == 3) && argc < 4)
+    {
+        sscanf(argv[1], "%ld", &fin);
+    }
+    else
+    {
+        printf("Combien de nombres premiers voulez-vous chercher ?: ");
+        scanf("%ld", &fin);
+    }
 
     clearScreen();
     printf("recherche...");
     
     unsigned long *liste = NULL;
     liste = find(fin);
-    
 
     if (liste == NULL)
     {
@@ -52,9 +61,12 @@ int main() {
     printf("\033[37m");
     clearScreen();
 
-    for (unsigned long i = 0; i < fin; i++)
+    if (argc == 3 && strcmp(argv[2], "false") == 0)
     {
-        printf("%ld\n", liste[i]);
+        for (unsigned long i = 0; i < fin; i++)
+        {
+            printf("%ld\n", liste[i]);
+        }
     }
 
     return EXIT_SUCCESS;
