@@ -23,7 +23,7 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
     int tid = blockIdx.x * blockDim.x + threadIdx.x + 2;
 
     while (true) {
-        if (cuda_estPremier(tid)) {
+        if (estPremier(tid)) {
             int idx = atomicAdd((int*)nombresPremiersTrouves, 1);
             if (idx < fin) {
                 liste[idx] = tid;
@@ -45,8 +45,6 @@ extern "C" unsigned long *find(unsigned long fin) {
 
     // allocation dynamique de mémoire sur le GPU
     cudaMalloc(&liste_d, fin * sizeof(unsigned long));
-    if(liste_d == NULL)
-        return NULL;
     cudaMalloc(&nombresPremiers_d, sizeof(unsigned long));
     if (nombresPremiers_d == NULL)
     {
@@ -57,7 +55,7 @@ extern "C" unsigned long *find(unsigned long fin) {
     //copie de mémoire sur le GPU
     cudaMemcpy(nombresPremiers_d, &nombresPremiers, sizeof(unsigned long), cudaMemcpyHostToDevice);
 
-    //appele des threads GPU
+    //apele des threads GPU
     int block_size = 1024;
     int grid_size = ((fin + block_size) / block_size);
     thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
