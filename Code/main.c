@@ -5,6 +5,7 @@
 #else
     #include <unistd.h>
 #endif
+#include <string.h>
 
 #include "lib.hu"
 
@@ -19,30 +20,25 @@ void clearScreen()
     printf("\033[H\033[2J");
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
-    printf("Combien de nombres premiers voulez-vous chercher ?: ");
-    scanf("%ld", &fin);
-
-    printf("Quel mode voulez-vous utiliser (1. CPU, 2. CUDA) ?: ");
-    char mode;
-    scanf("%d", (int*)&mode);
+    if (argc == 2 || argc == 3)
+    {
+        sscanf(argv[1], "%ld", &fin);
+    }
+    else
+    {
+        printf("Combien de nombres premiers voulez-vous chercher ?: ");
+        scanf("%ld", &fin);
+    }
 
     clearScreen();
     printf("recherche...");
     
     unsigned long *liste = NULL;
-    if (mode == 1)
-    {
-        liste = find_cpu(fin);
-    }
-    else if (mode == 2)
-    {
-        liste = find(fin);
-    }
-    
+    liste = find(fin);
 
     if (liste == NULL)
     {
@@ -66,9 +62,12 @@ int main() {
     printf("\033[37m");
     clearScreen();
 
-    for (int i = 0; i < fin; i++)
+    if(((argc == 3 || argc == 2) && !(strcmp(argv[2], "false") == 0)) || argc == 1)
     {
-        printf("%ld\n", liste[i]);
+        for (unsigned long i = 0; i < fin; i++)
+        {
+            printf("%ld\n", liste[i]);
+        }
     }
 
     return EXIT_SUCCESS;

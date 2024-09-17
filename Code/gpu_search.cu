@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -9,9 +8,6 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-
-//device variables
-unsigned long *liste_d, *nombresPremiers_d;
 
 __device__ bool cuda_estPremier(unsigned long n)
 {
@@ -42,22 +38,27 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
     }
 }
 
-unsigned long *find(unsigned long fin) {
+extern "C" unsigned long *find(unsigned long fin) {
     // host variables
     unsigned long *liste, nombresPremiers = 0;
+    //device variables
+    unsigned long *liste_d, *nombresPremiers_d;
 
     // allocation dynamique de mémoire sur le GPU
     cudaMalloc(&liste_d, fin * sizeof(unsigned long));
+    if(liste_d == NULL)
+        return NULL;
     cudaMalloc(&nombresPremiers_d, sizeof(unsigned long));
-    if (liste_d == NULL || nombresPremiers_d == NULL)
+    if (nombresPremiers_d == NULL)
     {
+        cudaFree(liste_d);
         return NULL;
     }
 
     //copie de mémoire sur le GPU
     cudaMemcpy(nombresPremiers_d, &nombresPremiers, sizeof(unsigned long), cudaMemcpyHostToDevice);
 
-    //apele des threads GPU
+    //appele des threads GPU
     int block_size = 1024;
     int grid_size = ((fin + block_size) / block_size);
     thread<<<grid_size,block_size>>>(fin, nombresPremiers_d, liste_d);
@@ -67,6 +68,8 @@ unsigned long *find(unsigned long fin) {
 
     if (liste == NULL)
     {
+        cudaFree(nombresPremiers_d);
+        cudaFree(liste_d);
         return NULL;
     }
 

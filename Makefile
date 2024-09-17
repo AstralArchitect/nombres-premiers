@@ -6,6 +6,9 @@ all:
 run: all
 	./builddir/main
 
+test: all
+	time ./builddir/main 1000000 false
+
 # Target to set up the build directory
 setupGcc:
 	meson setup builddir --native-file=native-gcc.txt
