@@ -61,13 +61,14 @@ int main(int argc, char *argv[]) {
     printf("\033[37m");
     clearScreen();
 
-    if (argc == 3 && strcmp(argv[2], "false") == 0)
+    if (((argc == 3 || argc == 2) && strcmp(argv[2], "false") == 0) || argc == 1)
     {
         for (unsigned long i = 0; i < fin; i++)
         {
             printf("%ld\n", liste[i]);
         }
     }
+    
 
     return EXIT_SUCCESS;
 }

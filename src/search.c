@@ -7,7 +7,19 @@
 #include <windows.h>
 #endif
 
-#include <math.h>
+#include <mutexManager.h>
+
+// modifier selon le nombre de coeur de votre processeur
+const unsigned char nb_threads = 2;
+
+typedef struct 
+{
+    unsigned long fin;
+    MutexedVar *NombresPremiersTrouves;
+    unsigned long *liste;
+    int stride;
+    int tid;
+} ThreadInfo;
 
 bool estPremier(unsigned long n)
 {
@@ -16,7 +28,7 @@ bool estPremier(unsigned long n)
         return false;
     }
     
-    for (unsigned long j = 3; j <= sqrt(n); j += 2) {
+    for (unsigned long j = 3; j * j <= n; j += 2) {
         if (n % j == 0){
             return false;
         }
@@ -24,31 +36,33 @@ bool estPremier(unsigned long n)
     return true;
 }
 
-void search(unsigned long fin, unsigned long *nombresPremiersTrouves, unsigned long *liste)
+void *search(void *argv)
 {
-    unsigned long tid = 3;
-    liste[0] = 2;
+    ThreadInfo *pointer = argv;
+    ThreadInfo threadInfo = *pointer;
     while (true)
     {
-        if (estPremier(tid))
+        if (estPremier(threadInfo.tid))
         {
-            liste[*nombresPremiersTrouves] = tid;
-            *nombresPremiersTrouves += 1;
+            threadInfo.liste[threadInfo.NombresPremiersTrouves->var] = threadInfo.tid;
+            increase(threadInfo.NombresPremiersTrouves, 1);
         }
 
-        tid++;
+        threadInfo.tid += threadInfo.stride;
         
-        if (*nombresPremiersTrouves >= fin)
+        if(threadInfo.NombresPremiersTrouves->var >= threadInfo.fin)
         {
             break;
         }
     }
+    return EXIT_SUCCESS;
 }
 
 unsigned long *find(unsigned long fin) {
     // variables
     unsigned long *liste;
-    unsigned long nombresPremiers = 1;
+    MutexedVar nombresPremiers;
+    initVar(&nombresPremiers, 1);
 
     // allocation dynamique de mémoire sur le host
     liste = (unsigned long*)malloc(fin * sizeof(unsigned long));
@@ -56,9 +70,33 @@ unsigned long *find(unsigned long fin) {
     {
         return NULL;
     }
-    
-    // recherche
-    search(fin, &nombresPremiers, liste);
+    liste[0] = 2;
 
+    // parametrage des threads
+    ThreadInfo threads[nb_threads];
+    pthread_t t[nb_threads];
+    int actualTid = 3;
+    for (unsigned char i = 0; i < nb_threads; i++)
+    {
+        threads[i].fin = fin;
+        threads[i].liste = liste;
+        threads[i].NombresPremiersTrouves = &nombresPremiers;
+        threads[i].stride = nb_threads;
+        threads[i].tid = actualTid;
+        actualTid++;
+    }
+
+    // recherche
+    for (unsigned char i = 0; i < nb_threads; i++)
+    {
+        pthread_create(&t[i], NULL, search, (void*)&threads[i]);
+    }
+    
+    // wait for threads finish
+    for (unsigned char i = 0; i < nb_threads; i++)
+    {
+        pthread_join(t[i], NULL);
+    }
+    
     return liste;
 }

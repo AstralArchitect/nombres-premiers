@@ -7,7 +7,7 @@ run: all
 	./builddir/main
 
 bench:all
-	bash time ./builddir/main 10000 true
+	time ./builddir/main 10000 true
 
 # Target to set up the build directory
 setupGcc:
