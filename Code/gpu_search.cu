@@ -11,10 +11,9 @@
 
 __device__ bool cuda_estPremier(unsigned long n)
 {
-    for (unsigned long j = 2; j * j <= n; j++) {
-        if (n % j == 0){
+    for (unsigned long i = 2; i * i <= n; i ++) {
+        if (n % i == 0){
             return false;
-            break;
         }
     }
     return true;
