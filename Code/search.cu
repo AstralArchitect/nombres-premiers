@@ -11,10 +11,18 @@
 
 __device__ bool cuda_estPremier(unsigned long n)
 {
-    for (unsigned long i = 2; i * i <= n; i ++) {
-        if (n % i == 0){
+    if (n <= 3) {
+        return true;
+    }
+    if (n % 2 == 0 || n % 3 == 0) {
+        return false;
+    }
+    int i = 5;
+    while (i * i <= n) {
+        if (n % i == 0 || n % (i + 2) == 0) {
             return false;
         }
+        i += 6;
     }
     return true;
 }
