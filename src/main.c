@@ -8,7 +8,7 @@
 #include <string.h>
 
 int cmpfunc(const void *a, const void *b) {
-    return (*(unsigned long*)a - *(unsigned long*)b);
+    return (*(unsigned int*)a - *(unsigned int*)b);
 }
 
 void clearScreen()
@@ -16,13 +16,13 @@ void clearScreen()
     printf("\033[H\033[2J");
 }
 
-unsigned long *find(unsigned long fin);
+unsigned int *find(unsigned int fin);
 
 int main(int argc, char *argv[]) {
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
-    unsigned long fin;
+    unsigned int fin;
     if ((argc == 2 || argc == 3) && argc < 4)
     {
         sscanf(argv[1], "%ld", &fin);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     clearScreen();
     printf("recherche...");
     
-    unsigned long *liste = NULL;
+    unsigned int *liste = NULL;
     liste = find(fin);
 
     if (liste == NULL)
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 
     clearScreen();
     printf("triage de la liste...");
-    qsort(liste, fin, sizeof(unsigned long), cmpfunc);
+    qsort(liste, fin, sizeof(unsigned int), cmpfunc);
     clearScreen();
     printf("\033[32m");
     printf("triage terminé.\n");
@@ -63,12 +63,11 @@ int main(int argc, char *argv[]) {
 
     if (((argc == 3 || argc == 2) && strcmp(argv[2], "false") == 0) || argc == 1)
     {
-        for (unsigned long i = 0; i < fin; i++)
+        for (unsigned int i = 0; i < fin; i++)
         {
             printf("%ld\n", liste[i]);
         }
     }
-    
 
     return EXIT_SUCCESS;
 }

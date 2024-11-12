@@ -9,14 +9,13 @@
 #include <windows.h>
 #endif
 
-// ne pas modifier
-const unsigned char nb_threads = 2;
+const unsigned char NB_THREADS = 2;
 
 typedef struct 
 {
-    unsigned long fin;
-    unsigned long *NombresPremiersTrouves;
-    unsigned long *liste;
+    unsigned int fin;
+    unsigned int *NombresPremiersTrouves;
+    unsigned int *liste;
     int stride;
     int tid;
 } ThreadInfo;
@@ -61,37 +60,37 @@ void *search(void *argv) {
     return NULL;
 }
 
-unsigned long *find(unsigned long fin) {
+unsigned int *find(unsigned int fin) {
     // variables
-    unsigned long *primes;
-    unsigned long numPrimesFound = 0;
+    unsigned int *primes;
+    unsigned int numPrimesFound = 0;
 
     // allocation dynamique de mémoire sur le host
-    primes = (unsigned long*)malloc(fin * sizeof(unsigned long));
+    primes = (unsigned int*)malloc(fin * sizeof(unsigned int));
     if (primes == NULL)
     {
         return NULL;
     }
 
     // parametrage des threads
-    pthread_t t[nb_threads];
-    ThreadInfo threadInfos[nb_threads];
+    pthread_t t[NB_THREADS];
+    ThreadInfo threadInfos[NB_THREADS];
 
     pthread_mutex_init(&mutex, NULL);
 
-    for (unsigned char i = 0; i < nb_threads; i++)
+    for (unsigned char i = 0; i < NB_THREADS; i++)
     {
         threadInfos[i].fin = fin;
         threadInfos[i].liste = primes;
         threadInfos[i].NombresPremiersTrouves = &numPrimesFound;
-        threadInfos[i].stride = nb_threads;
+        threadInfos[i].stride = NB_THREADS;
         threadInfos[i].tid = i;
         
         pthread_create(&t[i], NULL, search, &threadInfos[i]);
     }
     
     // wait for threads finish
-    for (unsigned char i = 0; i < nb_threads; i++)
+    for (unsigned char i = 0; i < NB_THREADS; i++)
     {
         pthread_join(t[i], NULL);
     }
