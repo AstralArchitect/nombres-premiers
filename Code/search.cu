@@ -9,7 +9,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-__device__ bool cuda_estPremier(unsigned long n)
+__device__ bool estPremier(unsigned long n)
 {
     if (n <= 3) {
         return true;
@@ -31,7 +31,7 @@ __global__ void thread(unsigned long fin, unsigned long *nombresPremiersTrouves,
     int tid = blockIdx.x * blockDim.x + threadIdx.x + 2;
 
     while (true) {
-        if (cuda_estPremier(tid)) {
+        if (estPremier(tid)) {
             int idx = atomicAdd((int*)nombresPremiersTrouves, 1);
             if (idx < fin) {
                 liste[idx] = tid;
