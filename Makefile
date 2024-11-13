@@ -7,7 +7,11 @@ run: all
 	./builddir/main
 
 bench:all
-	time ./builddir/main 1000000 true
+	bench.bat
+	bench.bat
+	bench.bat
+	bench.bat
+	bench.bat
 
 # Target to set up the build directory
 setupGcc:
