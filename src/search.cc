@@ -1,9 +1,4 @@
 #include <stdlib.h>
-#include <time.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 inline bool estPremier(unsigned int n, unsigned int *primes) {
     static bool first = true;
