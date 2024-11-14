@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         }
     }
     #else
-    unsigned int *liste = find(1000000);
+    find(1000000);
     #endif
     
     return EXIT_SUCCESS;

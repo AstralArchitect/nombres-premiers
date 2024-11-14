@@ -1,20 +1,13 @@
 #include <stdlib.h>
 
+#include <math.h>
+
 inline bool estPremier(unsigned int n, unsigned int *primes) {
-    static bool first = true;
-    if(first){
-        if (n <= 3) {
-            return true;
-        }
-        first = false;
-    }
-    int i = 0;
-    while (primes[i] * primes[i] <= n) {
-        if (n % primes[i] == 0) {
+    unsigned int root = sqrt(n);
+    for (unsigned int i = 0; primes[i] <= root; i++)
+        if (n % primes[i] == 0)
             return false;
-        }
-        i++;
-    }
+    
     return true;
 }
 
