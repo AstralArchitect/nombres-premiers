@@ -11,6 +11,7 @@
 unsigned int *find(unsigned int fin);
 
 int main(int argc, char *argv[]) {
+    #ifndef DEBUG
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
@@ -52,6 +53,9 @@ int main(int argc, char *argv[]) {
             printf("%d\n", liste[i]);
         }
     }
-
+    #else
+    unsigned int *liste = find(1000000);
+    #endif
+    
     return EXIT_SUCCESS;
 }

@@ -1,7 +1,7 @@
 @echo off
 
 rem Set the program to measure
-set program_to_measure=.\builddir\main.exe 1000000 true
+set program_to_measure=.\builddir\main.exe
 
 rem Start the timer
 set start_time=%time%

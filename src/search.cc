@@ -26,13 +26,14 @@ inline bool estPremier(unsigned int n, unsigned int *primes) {
 extern "C" unsigned int *find(unsigned int fin) {
     // variables
     unsigned int *primes;
-    unsigned int numPrimesFound = 0;
+    unsigned int numPrimesFound = 2;
 
     // allocation dynamique de mémoire
     if ((primes = (unsigned int*)malloc(fin * sizeof(unsigned int))) == NULL)
         return NULL;
-    
-    unsigned int nTest = 2;
+    primes[0] = 2;
+    primes[1] = 3;
+    unsigned int nTest = 5;
     do
     {
         if (estPremier(nTest, primes))
@@ -40,7 +41,13 @@ extern "C" unsigned int *find(unsigned int fin) {
             primes[numPrimesFound] = nTest;
             numPrimesFound++;
         }
-        nTest++;
+        if (estPremier(nTest + 2, primes))
+        {
+            primes[numPrimesFound] = nTest + 2;
+            numPrimesFound++;
+        }
+        
+        nTest += 6;
     } while (numPrimesFound < fin);
     
     return primes;

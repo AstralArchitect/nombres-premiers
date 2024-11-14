@@ -7,11 +7,19 @@ run: all
 	./builddir/main
 
 bench:all
+ifeq ($(OS),Windows_NT)
 	bench.bat
 	bench.bat
 	bench.bat
 	bench.bat
 	bench.bat
+else
+	./bench.sh
+	./bench.sh
+	./bench.sh
+	./bench.sh
+	./bench.sh
+endif
 
 # Target to set up the build directory
 setupGcc:

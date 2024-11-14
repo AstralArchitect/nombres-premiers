@@ -1,0 +1,1 @@
+time ./builddir/main
