@@ -11,7 +11,7 @@
 unsigned int *find(unsigned int fin);
 
 int main(int argc, char *argv[]) {
-    #ifndef DEBUG
+    #ifndef BENCH
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
