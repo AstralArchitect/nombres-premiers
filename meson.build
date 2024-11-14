@@ -1,6 +1,6 @@
 project('nombres-premiers', 'c', 'cpp', version : '1.0.0')
 
-add_global_arguments('-DBENCH', language: ['c', 'cpp'])
+#add_global_arguments('-DBENCH', language: ['c', 'cpp'])
 
 # Define sources
 sources = ['src/main.c', 'src/search.cc']
