@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #ifdef _WIN32
     #include <windows.h>
 #else
     #include <unistd.h>
 #endif
 #include <string.h>
+#ifdef BENCH
+#include <iostream>
+#include <chrono>
+#endif
 
 unsigned int *find(unsigned int fin);
 
@@ -54,7 +57,11 @@ int main(int argc, char *argv[]) {
         }
     }
     #else
-    find(1000000);
+    const auto start = std::chrono::high_resolution_clock::now();
+    unsigned int *liste = find(1000000);
+    const auto stop = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double> elapsed_seconds{stop - start};
+    std::cout << "Temps : " << elapsed_seconds.count() << std::endl;
     #endif
     
     return EXIT_SUCCESS;

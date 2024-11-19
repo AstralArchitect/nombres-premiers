@@ -11,7 +11,7 @@ inline bool estPremier(unsigned int n, unsigned int *primes) {
     return true;
 }
 
-extern "C" unsigned int *find(unsigned int fin) {
+unsigned int *find(unsigned int fin) {
     // variables
     unsigned int *primes;
     unsigned int numPrimesFound = 2;
