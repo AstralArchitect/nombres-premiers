@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     unsigned int *liste = find(1000000);
     const auto stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds{stop - start};
-    std::cout << "Temps : " << elapsed_seconds.count() << std::endl;
+    std::cout << "Temps : " << elapsed_seconds.count() << "secondes" << std::endl;
     #endif
     
     return EXIT_SUCCESS;
