@@ -1,9 +1,9 @@
 project('nombres-premiers', 'cpp', version : '1.0.0')
 
-#add_global_arguments('-DBENCH', language: ['c', 'cpp'])
+add_global_arguments('-DBENCH', language: ['cpp'])
 
 # Define sources
-sources = ['src/main.cc', 'src/search.cc']
+sources = ['src/search.cc', 'src/main.cc']
 
 # Define the executable
-executable('main', sources)
+executable('main', sources, include_directories: 'Include/')
