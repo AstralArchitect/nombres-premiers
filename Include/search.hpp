@@ -1,0 +1,1 @@
+unsigned int *find(unsigned int fin);

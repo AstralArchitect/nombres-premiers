@@ -32,4 +32,4 @@ Si vous voulez tester les performances de l'algorithme, utilisez la commande :
 make bench
 ```
 ### Important
-Il est de désactiver le commentaire mit sur la ligne 3 du fichier `meson.build` (en enlevant le # au début de la ligne) pour désactiver l'inerface et ainsi augmenter les performances.
+Pour utiliser le programme en mode bench, vous devrez d'abord enlever le commentaire sur la ligne 3 du ``meson.build``

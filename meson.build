@@ -12,7 +12,7 @@ else
 endif
 
 # Define sources
-sources = ['src/main.cc', 'src/search.cc']
+sources = ['src/search.cc', 'src/main.cc']
 
 # Define the executable
-executable('main', sources)
+executable('main', sources, include_directories: 'Include/')
