@@ -11,7 +11,7 @@
 #include <chrono>
 #endif
 
-unsigned int *find(unsigned int fin);
+unsigned int *find(unsigned int const& fin);
 
 int main(int argc, char *argv[]) {
     #ifndef BENCH
@@ -20,7 +20,6 @@ int main(int argc, char *argv[]) {
     #endif
     unsigned int fin;
     bool preDefinedEnd = argc > 1 ? true : false;
-    bool debug = preDefinedEnd && strcmp(argv[2], "true") == 0 ? true : false;
     if (preDefinedEnd)
     {
         sscanf(argv[1], "%d", &fin);
@@ -31,10 +30,7 @@ int main(int argc, char *argv[]) {
         scanf("%d", &fin);
     }
 
-    if(!debug)
-    {
-        printf("recherche...");
-    }
+    printf("recherche...");
     unsigned int *liste = find(fin);
 
     if (!liste)
@@ -45,23 +41,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if(!debug)
-    {
-        printf("\033[32m");
-        printf("recherche terminée.\n");
-        printf("\033[37m");
+    printf("\033[32m");
+    printf("recherche terminée.\n");
+    printf("\033[37m");
 
-        for (unsigned int i = 0; i < fin; i++)
-        {
-            printf("%d\n", liste[i]);
-        }
+    for (unsigned int i = 0; i < fin; i++)
+    {
+        printf("%d\n", liste[i]);
     }
+
+    free(liste);
     #else
     const auto start = std::chrono::high_resolution_clock::now();
     unsigned int *liste = find(1000000);
     const auto stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds{stop - start};
-    std::cout << "Temps : " << elapsed_seconds.count() << "secondes" << std::endl;
+    std::cout << "Temps : " << elapsed_seconds.count() << " secondes" << std::endl;
     #endif
     
     return EXIT_SUCCESS;

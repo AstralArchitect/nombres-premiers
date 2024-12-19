@@ -16,7 +16,6 @@ bench:all
 # Target to set up the build directory
 setupGcc:
 	meson setup builddir --native-file=native-gcc.txt
-	@if exist builddir/build.ninja (powershell -NoLogo -NoProfile -Command "(Get-Content builddir/build.ninja) -replace '"-Xcompiler=-Wall,-Winvalid-pch"', '-Xcompiler=-FS' | Set-Content builddir\build.ninja")
 setup:
 	meson setup builddir
 ifeq ($(OS),Windows_NT)

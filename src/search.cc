@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-inline bool estPremier(unsigned int n, unsigned int *primes) {
+inline bool estPremier(unsigned int const& n, unsigned int *primes) {
     unsigned int root = sqrt(n);
     for (unsigned int i = 0; primes[i] <= root; i++)
         if (n % primes[i] == 0)
@@ -11,7 +11,7 @@ inline bool estPremier(unsigned int n, unsigned int *primes) {
     return true;
 }
 
-unsigned int *find(unsigned int fin) {
+unsigned int *find(unsigned int const& fin) {
     // variables
     unsigned int *primes;
     unsigned int numPrimesFound = 2;
