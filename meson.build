@@ -1,6 +1,6 @@
 project('nombres-premiers', 'cpp', version : '1.0.0')
 
-#add_global_arguments('-DBENCH', language: 'cpp')
+add_global_arguments('-DBENCH', language: 'cpp')
 
 cpp_compiler = meson.get_compiler('cpp')
 

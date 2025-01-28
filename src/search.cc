@@ -5,7 +5,7 @@
 
 inline bool estPremier(unsigned int const& n, unsigned int *primes) {
     unsigned int root = sqrt(n);
-    for (unsigned int i = 0; primes[i] <= root; i++)
+    for (unsigned int i = 2; primes[i] <= root; i++)
         if (n % primes[i] == 0)
             return false;
     
@@ -22,6 +22,7 @@ unsigned int *find(unsigned int const& fin) {
         return NULL;
     primes[0] = 2;
     primes[1] = 3;
+    primes[2] = 5;
     unsigned int nTest = 5;
     do
     {

@@ -6,13 +6,6 @@ all:
 run: all
 	./builddir/main
 
-bench:all
-	./builddir/main
-	./builddir/main
-	./builddir/main
-	./builddir/main
-	./builddir/main
-
 # Target to set up the build directory
 setupGcc:
 	meson setup builddir --native-file=native-gcc.txt

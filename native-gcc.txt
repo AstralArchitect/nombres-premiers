@@ -1,3 +1,2 @@
 [binaries]
-c = 'gcc'
 cpp = 'g++'

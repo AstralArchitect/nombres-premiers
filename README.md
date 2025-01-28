@@ -27,9 +27,5 @@ make run
 ```
 Pour compiler et executer sans argument.
 ## Benchmark
-Si vous voulez tester les performances de l'algorithme, utilisez la commande :
-```
-make bench
-```
-### Important
-Pour utiliser le programme en mode bench, vous devrez d'abord enlever le commentaire sur la ligne 3 du ``meson.build``
+
+Pour utiliser le programme en mode bench, vous devrez d'abord enlever le commentaire sur la ligne 3 du ``meson.build`` puis le recompiler.
