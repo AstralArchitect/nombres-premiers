@@ -22,12 +22,12 @@ int main(int argc, char *argv[]) {
     bool preDefinedEnd = argc > 1 ? true : false;
     if (preDefinedEnd)
     {
-        sscanf(argv[1], "%d", &fin);
+        sscanf_s(argv[1], "%d", &fin);
     }
     else
     {
         printf("Combien de nombres premiers voulez-vous chercher ?: ");
-        scanf("%d", &fin);
+        scanf_s("%d", &fin);
     }
 
     printf("recherche...");

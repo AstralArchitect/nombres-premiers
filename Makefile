@@ -7,8 +7,8 @@ run: all
 	./builddir/main
 
 # Target to set up the build directory
-setupGcc:
-	meson setup builddir --native-file=native-gcc.txt
+setupClang:
+	meson setup builddir --native-file=native-clang.txt
 setup:
 	meson setup builddir
 ifeq ($(OS),Windows_NT)
