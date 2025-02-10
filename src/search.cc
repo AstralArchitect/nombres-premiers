@@ -15,7 +15,7 @@ inline bool estPremier(unsigned int const& n, unsigned int *primes) {
 unsigned int *find(unsigned int const& fin) {
     // variables
     unsigned int *primes;
-    unsigned int numPrimesFound = 3;
+    unsigned int numPrimesFound = 2;
 
     // allocation dynamique de mémoire
     if ((primes = (unsigned int*)malloc(fin * sizeof(unsigned int))) == NULL)
