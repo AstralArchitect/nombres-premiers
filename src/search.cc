@@ -18,7 +18,7 @@ unsigned int *find(unsigned int const& fin) {
     unsigned int numPrimesFound = 2;
 
     // allocation dynamique de mémoire
-    if ((primes = (unsigned int*)malloc(fin * sizeof(unsigned int))) == NULL)
+    if ((primes = (unsigned int*)malloc((fin + 1) * sizeof(unsigned int))) == NULL)
         return NULL;
     primes[0] = 2;
     primes[1] = 3;

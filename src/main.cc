@@ -12,6 +12,7 @@
 #endif
 
 unsigned int *find(unsigned int const& fin);
+unsigned int* find_gpu(unsigned int const& fin);
 
 int main(int argc, char *argv[]) {
     #ifndef BENCH
@@ -20,18 +21,32 @@ int main(int argc, char *argv[]) {
     #endif
     unsigned int fin;
     bool preDefinedEnd = argc > 1 ? true : false;
+    // verify if the user wants to force use the gpu
+    bool force_gpu = false;
+    if (strcmp(argv[2], "--force-gpu") == 0)
+    {
+        force_gpu = true;
+    }
     if (preDefinedEnd)
     {
-        sscanf_s(argv[1], "%d", &fin);
+        sscanf(argv[1], "%d", &fin);
     }
     else
     {
         printf("Combien de nombres premiers voulez-vous chercher ?: ");
-        scanf_s("%d", &fin);
+        scanf("%d", &fin);
     }
 
     printf("recherche...");
+    #ifndef CUDA
     unsigned int *liste = find(fin);
+    #else
+    unsigned int *liste;
+    if (fin < 500000 || !force_gpu)
+        liste = find(fin);
+    else
+        liste = find_gpu(fin);
+    #endif
 
     if (!liste)
     {
@@ -52,11 +67,19 @@ int main(int argc, char *argv[]) {
 
     free(liste);
     #else
-    const auto start = std::chrono::high_resolution_clock::now();
-    unsigned int *liste = find(1000000);
-    const auto stop = std::chrono::high_resolution_clock::now();
+    // cpu bench
+    auto start = std::chrono::high_resolution_clock::now();
+    unsigned int *liste = find(500000);
+    auto stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds{stop - start};
-    std::cout << "Temps : " << elapsed_seconds.count() << "  secondes" << std::endl;
+    std::cout << "Temps CPU : " << elapsed_seconds.count() << "  secondes" << std::endl;
+
+    // gpu bench
+    start = std::chrono::high_resolution_clock::now();
+    unsigned int *liste_gpu = find_gpu(500000);
+    stop = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double> elapsed_seconds_gpu{stop - start};
+    std::cout << "Temps GPU : " << elapsed_seconds_gpu.count() << "  secondes" << std::endl;
     #endif
     
     return EXIT_SUCCESS;
