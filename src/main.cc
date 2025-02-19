@@ -21,12 +21,6 @@ int main(int argc, char *argv[]) {
     #endif
     unsigned int fin;
     bool preDefinedEnd = argc > 1 ? true : false;
-    // verify if the user wants to force use the gpu
-    bool force_gpu = false;
-    if (strcmp(argv[2], "--force-gpu") == 0)
-    {
-        force_gpu = true;
-    }
     if (preDefinedEnd)
     {
         sscanf(argv[1], "%d", &fin);
@@ -74,12 +68,14 @@ int main(int argc, char *argv[]) {
     const std::chrono::duration<double> elapsed_seconds{stop - start};
     std::cout << "Temps CPU : " << elapsed_seconds.count() << "  secondes" << std::endl;
 
+    #ifdef CUDA
     // gpu bench
     start = std::chrono::high_resolution_clock::now();
     unsigned int *liste_gpu = find_gpu(500000);
     stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds_gpu{stop - start};
     std::cout << "Temps GPU : " << elapsed_seconds_gpu.count() << "  secondes" << std::endl;
+    #endif
     #endif
     
     return EXIT_SUCCESS;

@@ -31,7 +31,7 @@ __global__ void search_kernel(unsigned int *primes, unsigned int fin)
         }
         n += stride;
 
-        // Synchronize threads and check if the desired number of primes is found
+        // check if the desired number of primes is found
         if (numPrimesFound >= fin) {
             break;
         }
