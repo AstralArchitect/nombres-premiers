@@ -1,27 +1,23 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <math.h>
-
 #include <pthread.h>
 
-#define NB_THREADS 4
-
-typedef struct {
-    unsigned int id;
-    pthread_mutex_t *primeMutex;
-    pthread_barrier_t *barrier;
-}ThreadInfo;
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif
 
 volatile unsigned int numPrimesFound = 2;
 unsigned int *primes;
 unsigned int fin;
 
-unsigned int currentCandidate = 3;
+unsigned int currentCandidate = 5;
 
-pthread_mutex_t resultMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t candidate_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t resultMutex;
+pthread_mutex_t candidate_mutex;
+pthread_mutex_t primes_mutex;
 
 inline bool estPremier(unsigned int const& n) {
     if (n % 2 == 0 || n % 3 == 0)
@@ -40,14 +36,9 @@ inline bool estPremier(unsigned int const& n) {
 
 void *thread(void *arg)
 {
-    ThreadInfo *info = (ThreadInfo*)arg;
-    
-    printf("Thread id (create): %d\n", info->id);
-    pthread_barrier_wait(info->barrier);
-
     while (1)
     {
-        // first, check if we have found enough primes number
+        // first, check if we found enough primes number
         pthread_mutex_lock(&resultMutex);
         if (numPrimesFound >= fin)
         {
@@ -59,18 +50,29 @@ void *thread(void *arg)
         // Get the next candidate number (skip even numbers).
         pthread_mutex_lock(&candidate_mutex);
         unsigned int candidate = currentCandidate;
-        currentCandidate += 2; // Only odd numbers are considered.
+        currentCandidate += 6; // Only odd numbers are considered.
         pthread_mutex_unlock(&candidate_mutex);
 
         if (estPremier(candidate))
         {
             // critical section
-            pthread_mutex_lock(info->primeMutex);
+            pthread_mutex_lock(&primes_mutex);
             if (numPrimesFound < fin) { // Check again to be safe.
                 primes[numPrimesFound] = candidate;
                 numPrimesFound++;
             }
-            pthread_mutex_unlock(info->primeMutex);
+            pthread_mutex_unlock(&primes_mutex);
+        }
+
+        if (estPremier(candidate + 2))
+        {
+            // critical section
+            pthread_mutex_lock(&primes_mutex);
+            if (numPrimesFound < fin) { // Check again to be safe.
+                primes[numPrimesFound] = candidate + 2;
+                numPrimesFound++;
+            }
+            pthread_mutex_unlock(&primes_mutex);
         }
     }
     
@@ -85,155 +87,38 @@ unsigned int *find(unsigned int const& fin_loc) {
     primes[0] = 2;
     primes[1] = 3;
 
+    // get the processor's num of threads
+    int num_threads;
+
+#ifdef _WIN32 // Get number of hardware threads on Windows
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    num_threads = sysinfo.dwNumberOfProcessors;
+#else // Get number of hardware threads on POSIX systems
+    num_threads = sysconf(_SC_NPROCESSORS_ONLN);
+    if (num_threads == -1) // Handle error if necessary
+        num_threads = 4; // Fallback value
+#endif
+
     // créer la liste des info de thread
-    ThreadInfo infos[NB_THREADS];
-    pthread_t threads[NB_THREADS];
+    pthread_t threads[num_threads];
 
-    pthread_mutex_t primeMutex = PTHREAD_MUTEX_INITIALIZER;
-    pthread_barrier_t barrier;
-    pthread_barrier_init(&barrier, NULL, NB_THREADS);
+    pthread_mutex_init(&primes_mutex, NULL);
+    pthread_mutex_init(&candidate_mutex, NULL);
+    pthread_mutex_init(&primes_mutex, NULL);
     
-    for (unsigned int i = 0; i < NB_THREADS; i++)
-    {
-        // first, initialize infos
-        infos[i].id = i;
-        infos[i].primeMutex = &primeMutex;
-        infos[i].barrier = &barrier;
-
-        // then launch
-        pthread_create(&threads[i], NULL, thread, &infos[i]);
-    }
+    // launch threads
+    for (int i = 0; i < num_threads; i++)
+        pthread_create(&threads[i], NULL, thread, NULL);
 
     // wait for threads to finish
-    for (unsigned int i = 0; i < NB_THREADS; i++)
+    for (int i = 0; i < num_threads; i++)
         pthread_join(threads[i], NULL);
 
     // destroy pthread ressources
-    pthread_mutex_destroy(&primeMutex);
-    pthread_barrier_destroy(&barrier);
+    pthread_mutex_destroy(&primes_mutex);
+    pthread_mutex_destroy(&candidate_mutex);
+    pthread_mutex_destroy(&resultMutex);
 
     return primes;
 }
-
-/*
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <pthread.h>
-#include <stdbool.h>
-
-// Global variables
-unsigned long *primes; // Array to store found primes
-int num_primes; // Total number of primes to find (x)
-int found = 0; // Number of primes found so far
-
-// Starting candidate (only odd numbers are checked)
-unsigned long currentCandidate = 3;
-
-// Mutexes for synchronizing candidate and result updates
-pthread_mutex_t candidate_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t result_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-// Function to check if a number is prime.
-// Assumes num is odd (except when num is 2).
-bool isPrime(unsigned long num) {
-    if (num < 2) return false;
-    if (num % 2 == 0) return (num == 2);
-    unsigned long limit = (unsigned long) sqrt(num);
-    for (unsigned long i = 3; i <= limit; i += 2) {
-        if (num % i == 0)
-            return false;
-    }
-    return true;
-}
-
-// Worker thread function: repeatedly pick a candidate and check for primality.
-void* search_primes(void *arg) {
-    while (1) {
-        // First, check if we've already found enough primes.
-        pthread_mutex_lock(&result_mutex);
-        if (found >= num_primes) {
-            pthread_mutex_unlock(&result_mutex);
-            break;
-        }
-        pthread_mutex_unlock(&result_mutex);
-
-        // Get the next candidate number (skip even numbers).
-        pthread_mutex_lock(&candidate_mutex);
-        unsigned long candidate = currentCandidate;
-        currentCandidate += 2; // Only odd numbers are considered.
-        pthread_mutex_unlock(&candidate_mutex);
-
-        // Check if the candidate is prime.
-        if (isPrime(candidate)) {
-            pthread_mutex_lock(&result_mutex);
-            if (found < num_primes) { // Check again to be safe.
-                primes[found] = candidate;
-                found++;
-            }
-            pthread_mutex_unlock(&result_mutex);
-        }
-    }
-    return NULL;
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <number_of_primes> <number_of_threads>\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    num_primes = atoi(argv[1]);
-    int num_threads = atoi(argv[2]);
-    if (num_primes <= 0 || num_threads <= 0) {
-        fprintf(stderr, "Both number of primes and threads must be positive integers.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Allocate memory for the primes array.
-    primes = malloc(num_primes * sizeof(unsigned long));
-    if (primes == NULL) {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-
-    // Add 2 as the first prime (if needed).
-    if (num_primes > 0) {
-        primes[0] = 2;
-        found = 1;
-    }
-
-    // Create threads.
-    pthread_t *threads = malloc(num_threads * sizeof(pthread_t));
-    if (threads == NULL) {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < num_threads; i++) {
-        if (pthread_create(&threads[i], NULL, search_primes, NULL) != 0) {
-            perror("pthread_create");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    // Wait for all threads to finish.
-    for (int i = 0; i < num_threads; i++) {
-        pthread_join(threads[i], NULL);
-    }
-
-    // Print the found primes.
-    printf("Found %d primes:\n", num_primes);
-    for (int i = 0; i < num_primes; i++) {
-        printf("%lu ", primes[i]);
-    }
-    printf("\n");
-
-    // Clean up.
-    free(primes);
-    free(threads);
-    pthread_mutex_destroy(&candidate_mutex);
-    pthread_mutex_destroy(&result_mutex);
-
-    return 0;
-}
-*/

@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     #else
     // cpu bench
     auto start = std::chrono::high_resolution_clock::now();
-    unsigned int *liste = find(500000);
+    unsigned int *liste = find(1000000);
     auto stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds{stop - start};
     std::cout << "Temps CPU : " << elapsed_seconds.count() << "  secondes" << std::endl;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     #ifdef CUDA
     // gpu bench
     start = std::chrono::high_resolution_clock::now();
-    unsigned int *liste_gpu = find_gpu(500000);
+    unsigned int *liste_gpu = find_gpu(1000000);
     stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds_gpu{stop - start};
     std::cout << "Temps GPU : " << elapsed_seconds_gpu.count() << "  secondes" << std::endl;
