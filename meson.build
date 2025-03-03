@@ -1,6 +1,7 @@
-project('nombres-premiers', 'cpp', 'cuda', version : '1.0.0')
+#project('nombres-premiers', 'cpp', 'cuda', version : '3.0.0')
+project('nombres-premiers', 'cpp', version : '3.0.1')
 
-add_global_arguments('-DCUDA', language: 'cpp')
+#add_global_arguments('-DCUDA', language: 'cpp')
 #add_global_arguments('-DBENCH', language: 'cpp')
 
 cpp_compiler = meson.get_compiler('cpp')
@@ -13,7 +14,8 @@ else
 endif
 
 # Define sources
-sources = ['src/search.cc', 'src/main.cc', 'src/search.cu']
+#sources = ['src/search.cc', 'src/main.cc', 'src/search.cu']
+sources = ['src/search.cc', 'src/main.cc']
 
 # Define the executable
 executable('main', sources, include_directories: 'Include/')
