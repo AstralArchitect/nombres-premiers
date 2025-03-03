@@ -1,17 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <cstdlib>
 #ifdef _WIN32
     #include <windows.h>
 #else
     #include <unistd.h>
 #endif
-#include <string.h>
+#include <string>
 #ifdef BENCH
-#include <iostream>
 #include <chrono>
 #endif
 
-unsigned int *find(unsigned int const& fin);
+unsigned int* find(unsigned int const& fin);
 unsigned int* find_gpu(unsigned int const& fin);
 
 int main(int argc, char *argv[]) {
@@ -21,48 +20,38 @@ int main(int argc, char *argv[]) {
     #endif
     unsigned int fin;
     bool preDefinedEnd = argc > 1 ? true : false;
-    // verify if the user wants to force use the gpu
-    bool force_gpu = false;
-    if (strcmp(argv[2], "--force-gpu") == 0)
-    {
-        force_gpu = true;
-    }
     if (preDefinedEnd)
     {
-        sscanf(argv[1], "%d", &fin);
+        std::sscanf(argv[1], "%d", &fin);
     }
     else
     {
-        printf("Combien de nombres premiers voulez-vous chercher ?: ");
-        scanf("%d", &fin);
+        std::cout << "Combien de nombres premiers voulez-vous chercher ?: ";
+        std::cin >> fin;
     }
-
-    printf("recherche...");
+    std::cout << "recherche...";
     #ifndef CUDA
     unsigned int *liste = find(fin);
     #else
     unsigned int *liste;
-    if (fin < 500000 || !force_gpu)
-        liste = find(fin);
-    else
-        liste = find_gpu(fin);
+    liste = find_gpu(fin);
     #endif
 
     if (!liste)
     {
-        printf("\033[0;31m");
-        printf("Une erreur s'est produite\n");
-        printf("\033[0;37m");
-        return 1;
+        std::cout << "\033[0;31m";
+        std::cout << "Une erreur s'est produite\n";
+        std::cout << "\033[0;37m";
+        return EXIT_FAILURE;
     }
 
-    printf("\033[32m");
-    printf("recherche terminée.\n");
-    printf("\033[37m");
+    std::cout << "\033[32m";
+    std::cout << "recherche terminée!" << std::endl;
+    std::cout << "\033[37m";
 
     for (unsigned int i = 0; i < fin; i++)
     {
-        printf("%d\n", liste[i]);
+        std::cout << liste[i] << std::endl;
     }
 
     free(liste);
@@ -74,6 +63,7 @@ int main(int argc, char *argv[]) {
     const std::chrono::duration<double> elapsed_seconds{stop - start};
     std::cout << "Temps CPU : " << elapsed_seconds.count() << "  secondes" << std::endl;
 
+    #ifdef CUDA
     // gpu bench
     start = std::chrono::high_resolution_clock::now();
     unsigned int *liste_gpu = find_gpu(500000);
@@ -81,6 +71,7 @@ int main(int argc, char *argv[]) {
     const std::chrono::duration<double> elapsed_seconds_gpu{stop - start};
     std::cout << "Temps GPU : " << elapsed_seconds_gpu.count() << "  secondes" << std::endl;
     #endif
-    
+    #endif
+
     return EXIT_SUCCESS;
 }
