@@ -36,13 +36,13 @@ void *thread(void *arg)
     while (1)
     {
         // first, check if we found enough primes number
-        pthread_mutex_lock(&resultMutex);
+        //pthread_mutex_lock(&resultMutex);
         if (numPrimesFound >= fin)
         {
             pthread_mutex_unlock(&resultMutex);
             break;
         }
-        pthread_mutex_unlock(&resultMutex);
+        //pthread_mutex_unlock(&resultMutex);
 
         // Get the next candidate number (skip even and divisible by 3 numbers).
         pthread_mutex_lock(&candidate_mutex);
