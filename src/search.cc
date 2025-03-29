@@ -20,9 +20,6 @@ pthread_mutex_t candidate_mutex;
 pthread_mutex_t primes_mutex;
 
 inline bool estPremier(unsigned int const& n) {
-    if (n % 2 == 0 || n % 3 == 0)
-        return false;
-
     for (unsigned int i = 5; i * i <= n; i += 6)
     {
         if (n % i == 0)
@@ -47,20 +44,18 @@ void *thread(void *arg)
         }
         pthread_mutex_unlock(&resultMutex);
 
-        // Get the next candidate number (skip even numbers).
+        // Get the next candidate number (skip even and divisible by 3 numbers).
         pthread_mutex_lock(&candidate_mutex);
         unsigned int candidate = currentCandidate;
-        currentCandidate += 6; // Only odd numbers are considered.
+        currentCandidate += 6;
         pthread_mutex_unlock(&candidate_mutex);
 
         if (estPremier(candidate))
         {
             // critical section
             pthread_mutex_lock(&primes_mutex);
-            if (numPrimesFound < fin) { // Check again to be safe.
-                primes[numPrimesFound] = candidate;
-                numPrimesFound++;
-            }
+            primes[numPrimesFound] = candidate;
+            numPrimesFound++;
             pthread_mutex_unlock(&primes_mutex);
         }
 
@@ -68,10 +63,8 @@ void *thread(void *arg)
         {
             // critical section
             pthread_mutex_lock(&primes_mutex);
-            if (numPrimesFound < fin) { // Check again to be safe.
-                primes[numPrimesFound] = candidate + 2;
-                numPrimesFound++;
-            }
+            primes[numPrimesFound] = candidate + 2;
+            numPrimesFound++;
             pthread_mutex_unlock(&primes_mutex);
         }
     }
@@ -97,7 +90,7 @@ unsigned int *find(unsigned int const& fin_loc) {
 #else // Get number of hardware threads on POSIX systems
     num_threads = sysconf(_SC_NPROCESSORS_ONLN);
     if (num_threads == -1) // Handle error if necessary
-        num_threads = 4; // Fallback value
+        num_threads = 1; // Fallback value
 #endif
 
     // créer la liste des info de thread

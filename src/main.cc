@@ -34,7 +34,10 @@ int main(int argc, char *argv[]) {
     unsigned int *liste = find(fin);
     #else
     unsigned int *liste;
-    liste = find_gpu(fin);
+    if (fin < 500000)
+        liste = find(fin);
+    else
+        liste = find_gpu(fin);
     #endif
 
     if (!liste)
