@@ -3,7 +3,7 @@ Ceci est un programme en C qui permet de rechercher des nombres premiers.
 ## Utilisation
 Voici un aperçu de la commande :
 ```
-builddir/main [End(int] [no_print(bool)]
+builddir/main [End(int)] [no_print(bool)]
 ```
 Si les valeurs de 'End' et de 'no_print' ne sont pas précisées 'End' vous sera demandé et 'no_print' sera defini sur false.
 ## Compilation
@@ -14,9 +14,7 @@ Utilisez :
 make setup
 ```
 Pour configurer le projet. 
-#### Note 
-Si vous avez MSVC et GCC de installé et que vous voulez utiliser GCC, configurez le projet avec `make setupGcc`.
-####
+
 Ensuite utilisez :
 ```
 make
@@ -28,4 +26,4 @@ make run
 Pour compiler et executer sans argument.
 ## Benchmark
 
-Pour utiliser le programme en mode bench, vous devrez d'abord enlever le commentaire sur la ligne 3 du ``meson.build`` puis le recompiler.
+Pour utiliser le programme en mode bench, tapez ```meson test -C builddir``` dans le terminal.
