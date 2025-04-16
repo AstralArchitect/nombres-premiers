@@ -4,8 +4,7 @@
 #include <math.h>
 
 inline bool estPremier(unsigned int const& n, unsigned int *primes) {
-    unsigned int root = sqrt(n);
-    for (unsigned int i = 2; primes[i] <= root; i++)
+    for (unsigned int i = 2; primes[i] * primes[i] <= n; i++)
         if (n % primes[i] == 0)
             return false;
     
@@ -15,7 +14,7 @@ inline bool estPremier(unsigned int const& n, unsigned int *primes) {
 unsigned int *find(unsigned int const& fin) {
     // variables
     unsigned int *primes;
-    unsigned int numPrimesFound = 3;
+    unsigned int numPrimesFound = 2;
 
     // allocation dynamique de mémoire
     if ((primes = (unsigned int*)malloc(fin * sizeof(unsigned int))) == NULL)
