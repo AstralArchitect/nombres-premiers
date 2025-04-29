@@ -1,0 +1,11 @@
+{
+    "C_Cpp.default.compileCommands": "c:\\Users\\matth\\Documents\\Code\\nombres-premiers\\builddir/compile_commands.json",
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "files.associations": {
+        "*.cu": "cuda-cpp",
+        "unistd.h": "c",
+        "cstdlib": "cpp",
+        "chrono": "cpp"
+    },
+    "mesonbuild.configureOnOpen": false
+}

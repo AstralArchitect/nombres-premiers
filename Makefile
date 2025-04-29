@@ -1,24 +1,11 @@
-# Target to compile the project
 all:
-	meson compile -C builddir/
-
-# Target to run the compiled binary
+	mkdir build/ -p
+	nasm -f elf64 src/assembly/finder.asm -o build/finder.o
+	g++ src/c++/main.cc src/c++/find.cc build/finder.o -o build/main -no-pie
 run: all
-	./builddir/main
-
-# Target to set up the build directory
-setupGcc:
-	meson setup builddir --native-file=native-gcc.txt
-setup:
-	meson setup builddir
-ifeq ($(OS),Windows_NT)
-	@if exist builddir/build.ninja (powershell -NoLogo -NoProfile -Command "(Get-Content builddir\build.ninja) -replace ' ""msvcrt.lib""""', '' | Set-Content builddir\build.ninja")
-endif
-
-# Target to clean the build directory
-clean:
-ifeq ($(OS),Windows_NT)
-	@if exist builddir (rmdir builddir /S /Q)
-else
-	@if [ -d builddir ]; then rm -rf builddir; fi
-endif
+	build/main
+bench:
+	mkdir build/ -p
+	nasm -f elf64 src/assembly/finder.asm -o build/finder.o
+	g++ src/c++/main.cc src/c++/find.cc build/finder.o -o build/main -no-pie -DBENCH
+	build/main

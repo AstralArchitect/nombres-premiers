@@ -52,8 +52,11 @@ int main(int argc, char *argv[]) {
 
     free(liste);
     #else
+    unsigned int npf;
+    printf("Combien de nombres premiers voulez-vous chercher ?\n");
+    scanf("%d", &npf);
     const auto start = std::chrono::high_resolution_clock::now();
-    unsigned int *liste = find(1000000);
+    unsigned int *liste = find(npf);
     const auto stop = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_seconds{stop - start};
     std::cout << "Temps : " << elapsed_seconds.count() << "  secondes" << std::endl;
