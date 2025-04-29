@@ -4,12 +4,15 @@
 #include <algorithm>
 #include <execution>
 
-__device__ unsigned int numPrimesFound = 1;
+__device__ unsigned int numPrimesFound = 2;
 
 __device__ inline bool estPremier(unsigned int const& n) {
-    if (n % 2 == 0 || n % 3 == 0)
-        return false;
+    if (n < 2) return false;
+    if (n == 2 || n == 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
 
+    // Check for divisibility by numbers of the form 6k ± 1 up to sqrt(n)
+    
     for (unsigned int i = 5; i * i <= n; i += 6)
     {
         if (n % i == 0)
@@ -24,43 +27,36 @@ __device__ inline bool estPremier(unsigned int const& n) {
 __global__ void search_kernel(unsigned int *primes, unsigned int fin)
 {
     int id = threadIdx.x;
-    int stride = blockDim.x;
+    int stride = blockDim.x * 2;
 
-    if (id == 0) {
-        primes[0] = 2;
-    }
-    __syncthreads();
-
-    unsigned int n = 3 + id;
-    printf("thread id :%d\n", id);
-    printf("n = %d\n", n);
-    while (true)
+    unsigned int n = 5 + id * 2;
+    while (numPrimesFound < fin)
     {
         if (estPremier(n))
         {
             unsigned int index = atomicAdd((unsigned int*)&numPrimesFound, 1);
-            if (index < fin)
-                primes[index] = n;
-            else
-                break;
+            primes[index] = n;
         }
         n += stride;
-
-        // Synchronize threads and check if the desired number of primes is found
-        __syncthreads();
-        if (numPrimesFound >= fin) {
-            break;
-        }
     }
 }
 
-unsigned int* find_gpu(unsigned int const& fin)
+unsigned int* find(unsigned int const& fin)
 {
     // Allocate memory on the device for primes
     unsigned int *d_primes;
     cudaError_t err = cudaMalloc(&d_primes, fin * sizeof(unsigned int));
     if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to allocate device memory (error code %s)!\n", cudaGetErrorString(err));
+        fprintf(stderr, "\nFailed to allocate device memory (error : %s)!\n", cudaGetErrorString(err));
+        return nullptr;
+    }
+
+    unsigned int initials[3] = { 2, 3, 5 };
+
+    // Copy initial primes to the device
+    err = cudaMemcpy(d_primes, &initials[0], sizeof(initials), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "\nFailed to copy initial primes to the device memory (error : %s)!\n", cudaGetErrorString(err));
         return nullptr;
     }
 
@@ -70,11 +66,14 @@ unsigned int* find_gpu(unsigned int const& fin)
     int blockSize = prop.maxThreadsPerBlock;
     int numBlocks = (fin + blockSize - 1) / blockSize; // Calculate the number of blocks needed
 
+    if (blockSize > fin)
+        blockSize = fin;
+
     // Call the kernel
-    search_kernel<<<1, 1>>>(d_primes, fin);
+    search_kernel<<<1, 33>>>(d_primes, fin);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to launch kernel (error code %s)!\n", cudaGetErrorString(err));
+        fprintf(stderr, "\nFailed to launch kernel (error : %s)!\n", cudaGetErrorString(err));
         cudaFree(d_primes);
         return nullptr;
     }
@@ -82,7 +81,7 @@ unsigned int* find_gpu(unsigned int const& fin)
     // Synchronize the device
     err = cudaDeviceSynchronize();
     if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to synchronize device (error code %s)!\n", cudaGetErrorString(err));
+        fprintf(stderr, "\nFailed to synchronize device (error : %s)!\n", cudaGetErrorString(err));
         cudaFree(d_primes);
         return nullptr;
     }
@@ -91,7 +90,7 @@ unsigned int* find_gpu(unsigned int const& fin)
     unsigned int *primes = new unsigned int[fin];
     err = cudaMemcpy(primes, d_primes, fin * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to copy memory from device to host (error code %s)!\n", cudaGetErrorString(err));
+        fprintf(stderr, "Failed to copy memory from device to host (error : %s)!\n", cudaGetErrorString(err));
         cudaFree(d_primes);
         delete[] primes;
         return nullptr;

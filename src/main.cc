@@ -11,7 +11,6 @@
 #endif
 
 unsigned int* find(unsigned int const& fin);
-unsigned int* find_gpu(unsigned int const& fin);
 
 int main(int argc, char *argv[]) {
     #ifndef BENCH
@@ -30,15 +29,7 @@ int main(int argc, char *argv[]) {
         std::cin >> fin;
     }
     std::cout << "recherche...";
-    #ifndef CUDA
     unsigned int *liste = find(fin);
-    #else
-    unsigned int *liste;
-    if (fin < 500000)
-        liste = find(fin);
-    else
-        liste = find_gpu(fin);
-    #endif
 
     if (!liste)
     {
@@ -59,14 +50,7 @@ int main(int argc, char *argv[]) {
 
     free(liste);
     #else
-
-    #ifdef CUDA
-    // gpu bench
-    unsigned int *liste_gpu = find_gpu(1000000);
-    #else
-    // cpu bench
-    unsigned int *liste = find(1000000);
-    #endif
+    unsigned int *liste_gpu = find(1000000);
 
     #endif
     

@@ -6,6 +6,15 @@ all:
 run: all
 	./builddir/main
 
+test: all
+	./builddir/main 100
+	timeout /t 3 > nul
+	./builddir/main 1000
+	echo "104729"
+	timeout /t 3 > nul
+	./builddir/main 10000
+
+
 # Target to set up the build directory
 setupClang:
 	meson setup builddir --native-file=native-clang.txt
