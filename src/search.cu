@@ -7,9 +7,7 @@
 __device__ unsigned int numPrimesFound = 2;
 
 __device__ inline bool estPremier(unsigned int const& n) {
-    if (n < 2) return false;
-    if (n == 2 || n == 3) return true;
-    if (n % 2 == 0 || n % 3 == 0) return false;
+    if (n % 3 == 0) return false;
 
     // Check for divisibility by numbers of the form 6k ± 1 up to sqrt(n)
     
@@ -38,6 +36,7 @@ __global__ void search_kernel(unsigned int *primes, unsigned int fin)
             primes[index] = n;
         }
         n += stride;
+        __syncthreads();
     }
 }
 
@@ -64,13 +63,13 @@ unsigned int* find(unsigned int const& fin)
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     int blockSize = prop.maxThreadsPerBlock;
-    int numBlocks = (fin + blockSize - 1) / blockSize; // Calculate the number of blocks needed
+    int numBlocks = (fin + blockSize) / blockSize; // Calculate the number of blocks needed
 
     if (blockSize > fin)
         blockSize = fin;
 
     // Call the kernel
-    search_kernel<<<1, 33>>>(d_primes, fin);
+    search_kernel<<<numBlocks, blockSize>>>(d_primes, fin);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         fprintf(stderr, "\nFailed to launch kernel (error : %s)!\n", cudaGetErrorString(err));
