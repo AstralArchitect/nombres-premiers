@@ -1,104 +1,161 @@
+#include <stdlib.h>
+#include <string.h>
 #include <iostream>
-#include <cuda_runtime.h>
+#include <cstring>
+#include <stdexcept>
 
-#include <algorithm>
-#include <execution>
+void checkCudaError(cudaError_t err, const char* msg) {
+    if (err != cudaSuccess) {
+        std::cerr << "CUDA Error: " << msg << ": " << cudaGetErrorString(err) << std::endl;
+        // In a real application, you might throw an exception or exit.
+        exit(EXIT_FAILURE);
+    }
+}
 
-__device__ unsigned int numPrimesFound = 2;
+__device__ unsigned int nbPrimesFound = 1;
 
-__device__ inline bool estPremier(unsigned int const& n) {
+__device__ bool estPremier(unsigned int const& n)
+{
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+
+    if (n % 2 == 0) return false;
     if (n % 3 == 0) return false;
 
-    // Check for divisibility by numbers of the form 6k ± 1 up to sqrt(n)
-    
-    for (unsigned int i = 5; i * i <= n; i += 6)
+    for (unsigned int i = 5; i * i < n; i += 6)
     {
-        if (n % i == 0)
-            return false;
-
-        if (n % (i + 2) == 0)
+        if (n % i == 0 || n % (i + 2) == 0)
             return false;
     }
     return true;
 }
 
-__global__ void search_kernel(unsigned int *primes, unsigned int fin)
+__global__ void find_kernel(unsigned int fin, bool *isPrimes)
 {
-    int id = threadIdx.x;
-    int stride = blockDim.x * 2;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;;
+    unsigned int nbPrimesFound_local = 0;
 
-    unsigned int n = 5 + id * 2;
-    while (numPrimesFound < fin)
-    {
-        if (estPremier(n))
+    for (unsigned int i = idx; i < fin / 2; i += gridDim.x * blockDim.x){
+        if (estPremier(i * 2 + 3))
         {
-            unsigned int index = atomicAdd((unsigned int*)&numPrimesFound, 1);
-            primes[index] = n;
+            isPrimes[i] = true;
+            nbPrimesFound_local++;
         }
-        n += stride;
-        __syncthreads();
     }
+
+    atomicAdd(&nbPrimesFound, nbPrimesFound_local);
 }
 
-unsigned int* find(unsigned int const& fin)
-{
-    // Allocate memory on the device for primes
-    unsigned int *d_primes;
-    cudaError_t err = cudaMalloc(&d_primes, fin * sizeof(unsigned int));
-    if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to allocate device memory (error : %s)!\n", cudaGetErrorString(err));
-        return nullptr;
+unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
+    // Handle cases where 0 primes are requested.
+    if (fin < 2) return NULL;
+
+    const unsigned int ARRAY_SIZE = (fin / 2) - 1;
+
+    // initialisation du tableau
+    bool *isPrimes = new bool[ARRAY_SIZE];
+    memset(isPrimes, 0, (ARRAY_SIZE) * sizeof(bool));
+    
+    bool * isPrimes_d;
+    // Allocate memory on the device for the boolean array
+    checkCudaError(cudaMalloc(&isPrimes_d, ARRAY_SIZE * sizeof(bool)), "cudaMalloc isPrimes_d failed");
+    // Copy initial (all false) data from host to device
+    checkCudaError(cudaMemcpy(isPrimes_d, isPrimes, ARRAY_SIZE * sizeof(bool), cudaMemcpyHostToDevice), "cudaMemcpy isPrimes H2D failed");
+
+    // Get device properties for kernel launch configuration
+    int deviceId;
+    checkCudaError(cudaGetDevice(&deviceId), "cudaGetDevice failed"); // Get the current device ID
+
+    cudaDeviceProp deviceProp;
+    checkCudaError(cudaGetDeviceProperties(&deviceProp, deviceId), "cudaGetDeviceProperties failed");
+
+    // 1. Choose threads per block.
+    int threadsPerBlock = 1024;
+    if (threadsPerBlock > deviceProp.maxThreadsPerBlock) {
+        threadsPerBlock = deviceProp.maxThreadsPerBlock;
+        std::cerr << "Warning: threadsPerBlock adjusted to device max: " << threadsPerBlock << std::endl;
     }
 
-    unsigned int initials[3] = { 2, 3, 5 };
+    // 2. Calculate blocks per grid.
+    int blocksPerGrid = (ARRAY_SIZE + threadsPerBlock - 1) / threadsPerBlock;
 
-    // Copy initial primes to the device
-    err = cudaMemcpy(d_primes, &initials[0], sizeof(initials), cudaMemcpyHostToDevice);
-    if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to copy initial primes to the device memory (error : %s)!\n", cudaGetErrorString(err));
-        return nullptr;
+    // Optional: Check if blocksPerGrid exceeds the maxGridSize for the x-dimension
+    if (blocksPerGrid > deviceProp.maxGridSize[0]) {
+        std::cerr << "Warning: Calculated blocksPerGrid (" << blocksPerGrid
+                  << ") exceeds device's maxGridSize[0] (" << deviceProp.maxGridSize[0]
+                  << "). Capping grid size." << std::endl;
+        blocksPerGrid = deviceProp.maxGridSize[0]; // Cap it if it exceeds
     }
 
-    // Get the max number of blocks and threads
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0);
-    int blockSize = prop.maxThreadsPerBlock;
-    int numBlocks = (fin + blockSize) / blockSize; // Calculate the number of blocks needed
+    // Launch the kernel!
+    find_kernel<<<blocksPerGrid, threadsPerBlock>>>(fin, isPrimes_d);
+    checkCudaError(cudaGetLastError(), "find_kernel launch failed"); // Check for errors immediately after launch
 
-    if (blockSize > fin)
-        blockSize = fin;
+    // Synchronize to ensure the kernel finishes execution
+    checkCudaError(cudaDeviceSynchronize(), "cudaDeviceSynchronize failed");
 
-    // Call the kernel
-    search_kernel<<<numBlocks, blockSize>>>(d_primes, fin);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to launch kernel (error : %s)!\n", cudaGetErrorString(err));
-        cudaFree(d_primes);
-        return nullptr;
-    }
+    // Copy results back from device to host
+    checkCudaError(cudaMemcpy(isPrimes, isPrimes_d, ARRAY_SIZE * sizeof(bool), cudaMemcpyDeviceToHost), "cudaMemcpy D2H failed");
+    
+    // Copy the final prime count from device global memory to host
+    checkCudaError(cudaMemcpyFromSymbol(&numPrimesFound, nbPrimesFound, sizeof(unsigned int)), "cudaMemcpyFromSymbol nbPrimesFound failed");
 
-    // Synchronize the device
-    err = cudaDeviceSynchronize();
-    if (err != cudaSuccess) {
-        fprintf(stderr, "\nFailed to synchronize device (error : %s)!\n", cudaGetErrorString(err));
-        cudaFree(d_primes);
-        return nullptr;
-    }
-
-    // Copy the result back to the host
+    // transform to int array
     unsigned int *primes = new unsigned int[fin];
-    err = cudaMemcpy(primes, d_primes, fin * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to copy memory from device to host (error : %s)!\n", cudaGetErrorString(err));
-        cudaFree(d_primes);
-        delete[] primes;
-        return nullptr;
+    primes[0] = 2;
+    numPrimesFound = 1;
+    for (int i = 0; i < ARRAY_SIZE; i++) {
+        if (!isPrimes[i]) continue;
+        primes[numPrimesFound] = i * 2 + 3;
+        numPrimesFound++;
     }
 
-    std::sort(primes, primes + fin);
+    delete [] isPrimes;
+    cudaFree(isPrimes_d);
+    return primes;
+}
 
-    // Free the memory on the device
-    cudaFree(d_primes);
+inline bool estPremier(unsigned int const& n, unsigned int *primes) {
+    for (unsigned int i = 2; primes[i] * primes[i] <= n; i++)
+        if (n % primes[i] == 0)
+            return false;
+    
+    return true;
+}
 
+unsigned int *find_n_primes(unsigned int const& fin) {
+    // Handle cases where 0 primes are requested.
+    if (fin == 0) return NULL;
+
+    // variables
+    unsigned int *primes;
+    unsigned int numPrimesFound = 2;
+
+    // allocation dynamique de mémoire
+    if ((primes = (unsigned int*)malloc((fin + 1) * sizeof(unsigned int))) == NULL)
+        return NULL;
+    primes[0] = 2;
+    if (fin == 1) return primes;
+
+    primes[1] = 3;
+    if (fin == 2) return primes;
+
+    primes[2] = 5;
+    unsigned int nTest = 5;
+    while (numPrimesFound < fin){
+        if (estPremier(nTest, primes))
+        {
+            primes[numPrimesFound] = nTest;
+            numPrimesFound++;
+        }
+        if (estPremier(nTest + 2, primes))
+        {
+            primes[numPrimesFound] = nTest + 2;
+            numPrimesFound++;
+        }
+        
+        nTest += 6;
+    }
+    
     return primes;
 }
