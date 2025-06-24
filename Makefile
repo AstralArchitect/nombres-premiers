@@ -1,33 +1,33 @@
 # Target to compile the project
 all:
-	meson compile -C builddir/
+	meson compile -C build/
 
 # Target to run the compiled binary
 run: all
-	./builddir/main
+	./build/main
 
 test: all
-	./builddir/main 100
+	./build/main 100
 	timeout /t 3 > nul
-	./builddir/main 1000
+	./build/main 1000
 	echo "104729"
 	timeout /t 3 > nul
-	./builddir/main 10000
+	./build/main 10000
 
 
 # Target to set up the build directory
 setupClang:
-	meson setup builddir --native-file=native-clang.txt
+	meson setup build --native-file=native-clang.txt
 setup:
-	meson setup builddir
+	meson setup build
 ifeq ($(OS),Windows_NT)
-	@if exist builddir/build.ninja (powershell -NoLogo -NoProfile -Command "(Get-Content builddir\build.ninja) -replace ' ""msvcrt.lib""""', '' | Set-Content builddir\build.ninja")
+	@if exist build/build.ninja (powershell -NoLogo -NoProfile -Command "(Get-Content build\build.ninja) -replace ' ""msvcrt.lib""""', '' | Set-Content build\build.ninja")
 endif
 
 # Target to clean the build directory
 clean:
 ifeq ($(OS),Windows_NT)
-	@if exist builddir (rmdir builddir /S /Q)
+	@if exist build (rmdir build /S /Q)
 else
-	@if [ -d builddir ]; then rm -rf builddir; fi
+	@if [ -d build ]; then rm -rf build; fi
 endif

@@ -4,6 +4,8 @@
 #include <cstring>
 #include <stdexcept>
 
+typedef unsigned int uint;
+
 void checkCudaError(cudaError_t err, const char* msg) {
     if (err != cudaSuccess) {
         std::cerr << "CUDA Error: " << msg << ": " << cudaGetErrorString(err) << std::endl;
@@ -12,17 +14,11 @@ void checkCudaError(cudaError_t err, const char* msg) {
     }
 }
 
-__device__ unsigned int nbPrimesFound = 1;
-
-__device__ bool estPremier(unsigned int const& n)
+__device__ bool estPremier(uint const& n)
 {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-
-    if (n % 2 == 0) return false;
     if (n % 3 == 0) return false;
 
-    for (unsigned int i = 5; i * i < n; i += 6)
+    for (uint i = 5; i * i < n; i += 6)
     {
         if (n % i == 0 || n % (i + 2) == 0)
             return false;
@@ -30,27 +26,55 @@ __device__ bool estPremier(unsigned int const& n)
     return true;
 }
 
-__global__ void find_kernel(unsigned int fin, bool *isPrimes)
+__global__ void find_kernel(uint fin, bool *isPrimes)
 {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;;
-    unsigned int nbPrimesFound_local = 0;
+    // Each block tests a different number 'i' in a grid-striding loop.
+    for (uint i = 3 + blockIdx.x; i <= fin; i += gridDim.x)
+    {
+        // 1. Correctly declare and initialize a shared flag for the block.
+        //    Only one thread needs to do the initialization.
+        __shared__ bool isPrime_flag;
+        if (threadIdx.x == 0) {
+            isPrime_flag = true;
+        }
+        // Synchronize to make sure isPrime_flag is visible to all threads.
+        __syncthreads();
 
-    for (unsigned int i = idx; i < fin / 2; i += gridDim.x * blockDim.x){
-        if (estPremier(i * 2 + 3))
+        // 2. Perform parallel trial division.
+        //    Let all threads check their assigned divisors.
+        //    The loop condition is now much simpler and safer.
+        //    The check is j*j <= i, not i/2
+        for (uint j = 3 + threadIdx.x; j * j <= i; j += blockDim.x)
         {
-            isPrimes[i] = true;
-            nbPrimesFound_local++;
+            // If the flag is already false, we can skip the check. This is a safe optimization.
+            if (!isPrime_flag) {
+                break;
+            }
+
+            if (i % j == 0) {
+                // A divisor is found. Set the shared flag to false.
+                // This is a benign race condition, as all threads write the same value (false).
+                isPrime_flag = false;
+            }
+        }
+
+        // 3. Synchronize to ensure the final result of isPrime_flag is visible to all threads.
+        __syncthreads();
+
+        // 4. Have ONLY ONE thread write the result to global memory to avoid a race condition.
+        if (threadIdx.x == 0 && isPrime_flag == true)
+        {
+            // Assuming isPrimes maps odd numbers. If i=3, idx=0. If i=5, idx=1. So (i-3)/2
+            isPrimes[(i - 3) / 2] = true;
         }
     }
-
-    atomicAdd(&nbPrimesFound, nbPrimesFound_local);
 }
 
-unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
+uint *find_to_n(uint const& fin, uint &numPrimesFound) {
     // Handle cases where 0 primes are requested.
     if (fin < 2) return NULL;
 
-    const unsigned int ARRAY_SIZE = (fin / 2) - 1;
+    const uint ARRAY_SIZE = (fin / 2) - 1;
 
     // initialisation du tableau
     bool *isPrimes = new bool[ARRAY_SIZE];
@@ -88,7 +112,7 @@ unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
     }
 
     // Launch the kernel!
-    find_kernel<<<blocksPerGrid, threadsPerBlock>>>(fin, isPrimes_d);
+    find_kernel<<<blocksPerGrid, threadsPerBlock, sizeof(bool)>>>(fin, isPrimes_d);
     checkCudaError(cudaGetLastError(), "find_kernel launch failed"); // Check for errors immediately after launch
 
     // Synchronize to ensure the kernel finishes execution
@@ -96,12 +120,9 @@ unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
 
     // Copy results back from device to host
     checkCudaError(cudaMemcpy(isPrimes, isPrimes_d, ARRAY_SIZE * sizeof(bool), cudaMemcpyDeviceToHost), "cudaMemcpy D2H failed");
-    
-    // Copy the final prime count from device global memory to host
-    checkCudaError(cudaMemcpyFromSymbol(&numPrimesFound, nbPrimesFound, sizeof(unsigned int)), "cudaMemcpyFromSymbol nbPrimesFound failed");
 
     // transform to int array
-    unsigned int *primes = new unsigned int[fin];
+    uint *primes = new uint[fin];
     primes[0] = 2;
     numPrimesFound = 1;
     for (int i = 0; i < ARRAY_SIZE; i++) {
@@ -115,24 +136,24 @@ unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
     return primes;
 }
 
-inline bool estPremier(unsigned int const& n, unsigned int *primes) {
-    for (unsigned int i = 2; primes[i] * primes[i] <= n; i++)
+inline bool estPremier(uint const& n, uint *primes) {
+    for (uint i = 2; primes[i] * primes[i] <= n; i++)
         if (n % primes[i] == 0)
             return false;
     
     return true;
 }
 
-unsigned int *find_n_primes(unsigned int const& fin) {
+uint *find_n_primes(uint const& fin) {
     // Handle cases where 0 primes are requested.
     if (fin == 0) return NULL;
 
     // variables
-    unsigned int *primes;
-    unsigned int numPrimesFound = 2;
+    uint *primes;
+    uint numPrimesFound = 2;
 
     // allocation dynamique de mémoire
-    if ((primes = (unsigned int*)malloc((fin + 1) * sizeof(unsigned int))) == NULL)
+    if ((primes = (uint*)malloc((fin + 1) * sizeof(uint))) == NULL)
         return NULL;
     primes[0] = 2;
     if (fin == 1) return primes;
@@ -141,7 +162,7 @@ unsigned int *find_n_primes(unsigned int const& fin) {
     if (fin == 2) return primes;
 
     primes[2] = 5;
-    unsigned int nTest = 5;
+    uint nTest = 5;
     while (numPrimesFound < fin){
         if (estPremier(nTest, primes))
         {
