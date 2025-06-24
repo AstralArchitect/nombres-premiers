@@ -13,17 +13,11 @@ inline bool estPremier(unsigned int const& n, unsigned int *primes) {
 
 inline bool estPremier(unsigned int const& n)
 {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-
-    if (n % 2 == 0) return false;
     if (n % 3 == 0) return false;
 
     for (unsigned int i = 5; i * i < n; i += 6)
-    {
         if (n % i == 0 || n % (i + 2) == 0)
             return false;
-    }
     return true;
 }
 
@@ -64,29 +58,30 @@ unsigned int *find_n_primes(unsigned int const& fin) {
     return primes;
 }
 
-std::atomic<int> nbPrimesFound(1);
-const unsigned char THREADS = 20;
+unsigned int THREADS;
 
-void find_to_n_thread(unsigned int const& fin, unsigned short const& id, bool *isPrimes) {
-    unsigned int nbPrimesFound_local = 0;
-    for (unsigned int i = id; i < fin; i += THREADS){
-        if (estPremier(i * 2 + 3))
+void find_to_n_thread(unsigned int const& array_size, unsigned short const& id, bool *isPrimes) {
+    for (unsigned int i = id; i < array_size; i += THREADS){
+        if (estPremier(i * 2 + 5)) // the candidate is : i * 2 + 5
         {
             isPrimes[i] = true;
-            nbPrimesFound_local++;
         }
     }
-    nbPrimesFound += nbPrimesFound_local;
 }
 
 unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
     // Handle cases where 0 primes are requested.
     if (fin == 0) return NULL;
 
-    // initialisation du tableau
-    bool *isPrimes = new bool[fin / 2];
+    // initialize an array of bool which represent numbers from 5 (included) to fin jumping pair numbers
+    unsigned int array_lenth = (fin - 5) / 2;
+    bool *isPrimes = new bool[array_lenth];
 
-    memset(isPrimes, 0, (fin / 2) * sizeof(bool)); 
+    memset(isPrimes, 0, array_lenth * sizeof(bool)); 
+
+    // get the number of threads of the processor
+    const unsigned int processor_count = std::thread::hardware_concurrency();
+    THREADS = processor_count > 0 ? processor_count : 1;
 
     // primes test
     std::thread threads[THREADS];
@@ -99,11 +94,13 @@ unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
 
     // transform to int array
     unsigned int *primes = new unsigned int[fin];
+    // set the firsts primes
     primes[0] = 2;
-    numPrimesFound = 1;
-    for (int i = 0; i < fin / 2; i++) {
+    primes[1] = 3;
+    numPrimesFound = 2; // found 2 & 3
+    for (int i = 0; i < array_lenth; i++) { // i is the index of isPrimes
         if (!isPrimes[i]) continue;
-        primes[numPrimesFound] = i * 2 + 3;
+        primes[numPrimesFound] = i * 2 + 5;
         numPrimesFound++;
     }
 
