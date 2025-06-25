@@ -84,13 +84,14 @@ unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound) {
     THREADS = processor_count > 0 ? processor_count : 1;
 
     // primes test
-    std::thread threads[THREADS];
+    std::thread *threads = new std::thread[THREADS];
     for (unsigned short id = 0; id < THREADS; ++id) {
-        threads[id] = std::thread(find_to_n_thread, fin / 2, id, isPrimes);
+        threads[id] = std::thread(find_to_n_thread, array_lenth, id, isPrimes);
     }
     for (unsigned short id = 0; id < THREADS; ++id) {
         threads[id].join();
     }
+    delete [] threads;
 
     // transform to int array
     unsigned int *primes = new unsigned int[fin];
