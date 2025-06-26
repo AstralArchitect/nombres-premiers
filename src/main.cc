@@ -14,6 +14,9 @@
 unsigned int *find_n_primes(unsigned int const& fin);
 unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound);
 
+// functions that print arrays
+void printCArrayFwrite(const unsigned int* arr, size_t size);
+
 int main(int argc, char *argv[]) {
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
@@ -40,9 +43,7 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
         // print primes
-        for (unsigned int i = 0; i < fin; i++) {
-            std::cout << primes[i] << std::endl;
-        }
+        printCArrayFwrite(primes, fin);
     } else if (mod == 2) {
         // ask for the number
         unsigned int fin;
@@ -56,11 +57,41 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
         // print primes
-        for (unsigned int i = 0; i < numPrimesFound; i++) {
-            std::cout << primes[i] << std::endl;
-        }
+        printCArrayFwrite(primes, numPrimesFound);
     }
     free(primes);
     
     return EXIT_SUCCESS;
+}
+
+
+// A fast integer-to-string conversion function (itoa)
+inline char* fast_itoa(unsigned int n, char* s) {
+    if (n == 0) {
+        *s++ = '0';
+        return s;
+    }
+    char* start = s;
+    while (n > 0) {
+        *s++ = (n % 10) + '0';
+        n /= 10;
+    }
+    std::reverse(start, s);
+    return s;
+}
+
+void printCArrayFwrite(const unsigned int* arr, size_t size) {
+    // Estimate buffer size. Max 11 chars for a 32-bit int (-2147483648)
+    // plus a newline character.
+    char *buffer = new char[size * 12];
+    char* ptr = buffer;
+
+    for (size_t i = 0; i < size; ++i) {
+        ptr = fast_itoa(arr[i], ptr);
+        *ptr++ = '\n';
+    }
+
+    // Write the entire buffer to stdout in one go
+    fwrite(buffer, 1, ptr - buffer, stdout);
+    delete [] buffer;
 }

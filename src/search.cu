@@ -14,18 +14,6 @@ void checkCudaError(cudaError_t err, const char* msg) {
     }
 }
 
-__device__ bool estPremier(uint const& n)
-{
-    if (n % 3 == 0) return false;
-
-    for (uint i = 5; i * i < n; i += 6)
-    {
-        if (n % i == 0 || n % (i + 2) == 0)
-            return false;
-    }
-    return true;
-}
-
 __global__ void find_kernel(uint fin, bool *isPrimes)
 {
     // Each block tests a different number 'i' in a grid-striding loop.
@@ -38,7 +26,7 @@ __global__ void find_kernel(uint fin, bool *isPrimes)
             isPrime_flag = true;
         }
         // Synchronize to make sure isPrime_flag is visible to all threads.
-        __syncthreads();
+        //__syncthreads();
 
         // 2. Perform parallel trial division.
         //    Let all threads check their assigned divisors.
@@ -59,7 +47,7 @@ __global__ void find_kernel(uint fin, bool *isPrimes)
         }
 
         // 3. Synchronize to ensure the final result of isPrime_flag is visible to all threads.
-        __syncthreads();
+        //__syncthreads();
 
         // 4. Have ONLY ONE thread write the result to global memory to avoid a race condition.
         if (threadIdx.x == 0 && isPrime_flag == true)
@@ -94,11 +82,7 @@ uint *find_to_n(uint const& fin, uint &numPrimesFound) {
     checkCudaError(cudaGetDeviceProperties(&deviceProp, deviceId), "cudaGetDeviceProperties failed");
 
     // 1. Choose threads per block.
-    int threadsPerBlock = 1024;
-    if (threadsPerBlock > deviceProp.maxThreadsPerBlock) {
-        threadsPerBlock = deviceProp.maxThreadsPerBlock;
-        std::cerr << "Warning: threadsPerBlock adjusted to device max: " << threadsPerBlock << std::endl;
-    }
+    int threadsPerBlock = deviceProp.maxThreadsPerBlock;
 
     // 2. Calculate blocks per grid.
     int blocksPerGrid = (ARRAY_SIZE + threadsPerBlock - 1) / threadsPerBlock;
@@ -112,6 +96,7 @@ uint *find_to_n(uint const& fin, uint &numPrimesFound) {
     }
 
     // Launch the kernel!
+    
     find_kernel<<<blocksPerGrid, threadsPerBlock, sizeof(bool)>>>(fin, isPrimes_d);
     checkCudaError(cudaGetLastError(), "find_kernel launch failed"); // Check for errors immediately after launch
 
