@@ -10,12 +10,14 @@
 #include <chrono>
 #endif
 
+typedef unsigned int uint;
+
 // functions that search primes
-unsigned int *find_n_primes(unsigned int const& fin);
-unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound);
+uint *find_n_primes(uint const& fin);
+uint *find_to_n(uint const& fin, uint &numPrimesFound);
 
 // functions that print arrays
-void printCArrayFwrite(const unsigned int* arr, size_t size);
+void printCArrayFwrite(const uint* arr, size_t size);
 
 int main(int argc, char *argv[]) {
     #ifdef _WIN32
@@ -29,11 +31,11 @@ int main(int argc, char *argv[]) {
     int mod = 0;
     std::cin >> mod;
 
-    unsigned int *primes;
+    uint *primes;
 
     if (mod == 1) {
         // ask for the number
-        unsigned int fin;
+        uint fin;
         std::cout << "Entrez le nombre de nombres premiers que vous voulez trouver" << std::endl;
         std::cin >> fin;
         // find primes
@@ -46,8 +48,8 @@ int main(int argc, char *argv[]) {
         printCArrayFwrite(primes, fin);
     } else if (mod == 2) {
         // ask for the number
-        unsigned int fin;
-        unsigned int numPrimesFound;
+        uint fin;
+        uint numPrimesFound;
         std::cout << "Entrez la limite des nombres premiers a trouver" << std::endl;
         std::cin >> fin;
         // find primes
@@ -66,7 +68,7 @@ int main(int argc, char *argv[]) {
 
 
 // A fast integer-to-string conversion function (itoa)
-inline char* fast_itoa(unsigned int n, char* s) {
+inline char* fast_itoa(uint n, char* s) {
     if (n == 0) {
         *s++ = '0';
         return s;
@@ -80,7 +82,7 @@ inline char* fast_itoa(unsigned int n, char* s) {
     return s;
 }
 
-void printCArrayFwrite(const unsigned int* arr, size_t size) {
+void printCArrayFwrite(const uint* arr, size_t size) {
     // Estimate buffer size. Max 11 chars for a 32-bit int (-2147483648)
     // plus a newline character.
     char *buffer = new char[size * 12];

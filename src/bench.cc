@@ -7,9 +7,11 @@
 #endif
 #include <string.h>
 
+typedef unsigned int uint;
+
 // functions that search primes
-unsigned int *find_n_primes(unsigned int const& fin);
-unsigned int *find_to_n(unsigned int const& fin, unsigned int &numPrimesFound);
+uint *find_n_primes(uint const& fin);
+uint *find_to_n(uint const& fin, uint &numPrimesFound);
 
 int main(int argc, char *argv[]) {
     #ifdef _WIN32
@@ -22,10 +24,10 @@ int main(int argc, char *argv[]) {
     }
 
     // get mode and count
-    unsigned int mod   = atoi(argv[1]);
-    unsigned int count = atoi(argv[2]);
+    uint mod   = atoi(argv[1]);
+    uint count = atoi(argv[2]);
 
-    unsigned int *primes;
+    uint *primes;
 
     if (mod == 1) {
         // find primes
@@ -39,7 +41,7 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
     } else if (mod == 2) {
-        unsigned int numPrimesFound = 0;
+        uint numPrimesFound = 0;
         // find primes
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         primes = find_to_n(count, numPrimesFound);
